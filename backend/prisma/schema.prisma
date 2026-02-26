@@ -1,0 +1,173 @@
+// Tattoondra Database Schema
+// Generated: 2026-02-22
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  ADMIN
+  ARTIST
+  RECEPTIONIST
+  CLIENT
+}
+
+enum AppointmentStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentType {
+  CASH
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  COMPLETED
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  phone         String?
+  role          UserRole @default(CLIENT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  clientAppointments Appointment[] @relation("ClientAppointments")
+  artistAppointments Appointment[] @relation("ArtistAppointments")
+  payments           Payment[]
+  // sessions           Session[] // Uncomment for post-MVP session tracking
+}
+
+model Appointment {
+  id                String            @id @default(cuid())
+  date              DateTime
+  duration          Int               @default(60) // minutes
+  description       String?
+  status            AppointmentStatus @default(PENDING_CONFIRMATION)
+  depositAmount     Decimal           @default(200.00)
+  depositReceived   Boolean           @default(false)
+  totalPrice        Decimal?
+  consentSigned     Boolean           @default(false)
+  consentSignedAt   DateTime?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  clientId          String
+  client            User              @relation("ClientAppointments", fields: [clientId], references: [id])
+  artistId          String?
+  artist            User?             @relation("ArtistAppointments", fields: [artistId], references: [id])
+  payments          Payment[]
+  // session           Session? // Uncomment for post-MVP session tracking
+
+  @@index([date])
+  @@index([clientId])
+  @@index([status])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  amount          Decimal
+  type            PaymentType
+  status          PaymentStatus @default(COMPLETED)
+  isDeposit       Boolean       @default(false)
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  appointmentId   String
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
+  receivedById    String
+  receivedBy      User          @relation(fields: [receivedById], references: [id])
+
+  @@index([appointmentId])
+  @@index([createdAt])
+}
+
+// ============================================
+// POST-MVP MODELS (Optional - Currently Commented Out)
+// ============================================
+// These models are for advanced per-session material tracking
+// Uncomment if Alejandra requests detailed usage analytics
+
+// model Session {
+//   id              String   @id @default(cuid())
+//   date            DateTime @default(now())
+//   notes           String?
+//   duration        Int?     // actual duration in minutes
+//   createdAt       DateTime @default(now())
+//   updatedAt       DateTime @updatedAt
+//
+//   // Relations
+//   appointmentId   String   @unique
+//   appointment     Appointment @relation(fields: [appointmentId], references: [id])
+//   artistId        String
+//   artist          User     @relation(fields: [artistId], references: [id])
+//   materialsUsed   MaterialUsage[]
+// }
+
+// model MaterialUsage {
+//   id              String   @id @default(cuid())
+//   quantity        Int
+//   createdAt       DateTime @default(now())
+//
+//   // Relations
+//   sessionId       String
+//   session         Session  @relation(fields: [sessionId], references: [id])
+//   materialId      String
+//   material        Material @relation(fields: [materialId], references: [id])
+//
+//   @@index([sessionId])
+//   @@index([materialId])
+// }
+
+// ============================================
+// MVP INVENTORY MODEL (Simple Tracking)
+// ============================================
+
+model Material {
+  id              String   @id @default(cuid())
+  name            String
+  category        String?
+  quantity        Int      // Current stock level (manually updated)
+  unit            String   @default("unidad")
+  restockThreshold Int     @default(25) // Alert when below this percentage
+  costPerUnit     Decimal?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([quantity])
+}
+
+model BlockedDate {
+  id              String   @id @default(cuid())
+  date            DateTime
+  reason          String?
+  createdAt       DateTime @default(now())
+
+  @@index([date])
+}
