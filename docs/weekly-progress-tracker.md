@@ -5,38 +5,47 @@ Use this document to track your progress each week. This will be valuable for yo
 ---
 
 ## WEEK 1: Foundation & Infrastructure
-**Dates:** __________ to __________
-**Hours Logged:** ______
+**Dates:** _feb 22 ___ to _feb28__
+**Hours Logged:** _8 hours_
 
 ### Goals
-- [ ] GitHub repo created with proper structure
-- [ ] Frontend (React+Vite) running locally
-- [ ] Backend (Node+Express+Prisma) running locally
-- [ ] PostgreSQL database connected
+- [x] GitHub repo created with proper structure
+- [x] Frontend (React+Vite) running locally
+- [x] Backend (Node+Express+Prisma) running locally
+- [x] PostgreSQL database connected
 - [ ] Authentication provider integrated (Clerk)
-- [ ] Both deployed to production (Vercel + Railway)
-- [ ] Database schema designed and migrated
+- [x] Backend deployed to production (Railway) ✅ DONE TODAY!
+- [] Frontend deployed to production (Vercel)
+- [x] Database schema designed and migrated
 
 ### What We Accomplished
--
--
--
+- Fixed project naming (Tatoondra → Tattoondra) across 15 files
+- Initialized Git repository and pushed to GitHub
+- Tested backend locally - health endpoint working
+- **Deployed backend to Railway successfully**
+- Production URL: https://tattoondra-production.up.railway.app
+- Verified production health check endpoint
 
 ### Challenges Faced
--
--
+- Initial confusion about Railway's interface (environments vs services)
+- Windows filename restrictions for screenshot names
 
 ### Solutions Found
--
--
+- Found correct "New Service" → "Git Repo" flow in Railway
+- Used simpler, Windows-safe filenames for screenshots
+- Railway auto-detected PostgreSQL connection
 
 ### Learnings This Week
--
--
+- Git workflow: init, add, commit, push, remote
+- Difference between fetch and pull
+- Railway deployment process from GitHub
+- Production vs development environments
+- Importance of documenting work as you go
 
 ### Next Week Priorities
--
--
+- Deploy frontend to Vercel
+- Start building authentication
+- Begin client management features
 
 ---
 
