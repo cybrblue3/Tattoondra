@@ -13,9 +13,8 @@ Use this document to track your progress each week. This will be valuable for yo
 - [x] Frontend (React+Vite) running locally
 - [x] Backend (Node+Express+Prisma) running locally
 - [x] PostgreSQL database connected
-- [ ] Authentication provider integrated (Clerk)
 - [x] Backend deployed to production (Railway) ✅ DONE TODAY!
-- [] Frontend deployed to production (Vercel)
+- [x] Frontend deployed to production (Vercel)
 - [x] Database schema designed and migrated
 
 ### What We Accomplished
@@ -23,6 +22,9 @@ Use this document to track your progress each week. This will be valuable for yo
 - Initialized Git repository and pushed to GitHub
 - Tested backend locally - health endpoint working
 - **Deployed backend to Railway successfully**
+- **Deployed frontend to Vercel successfully**
+- Production Frontend URL: https://tattoondra.vercel.app
+- Both applications running in production environment
 - Production URL: https://tattoondra-production.up.railway.app
 - Verified production health check endpoint
 
