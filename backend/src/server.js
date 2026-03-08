@@ -8,9 +8,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ============================================
 // MIDDLEWARE
-// ============================================
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -20,9 +18,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ============================================
 // ROUTES
-// ============================================
+// Import routes
+  const authRoutes = require('./routes/authRoutes');
 
 // Health check
 app.get('/health', (req, res) => {
@@ -33,6 +31,9 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Auth routes
+  app.use('/api/auth', authRoutes);
+  
 // API routes will be added here
 // app.use('/api/appointments', require('./routes/appointments'));
 // app.use('/api/clients', require('./routes/clients'));
