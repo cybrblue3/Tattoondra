@@ -67,21 +67,33 @@ Use this document to track your progress each week. This will be valuable for yo
 - [X] Supabase migration (URGENT)
 
 ### What We Accomplished
-- **Migrated database from Railway to Supabase**
+- **Migrated database from Railway to Supabase** (March 1-3)
   - Configured dual connection URLs (pooled + direct)
   - Created password field migration for User model
   - Verified database schema sync with 2 migrations
-- **Built complete JWT authentication system**
+- **Built complete JWT authentication system - Backend** (March 8, Night)
   - Created authController.js with register and login endpoints
   - Implemented password hashing with bcrypt (10 salt rounds = 1,024 iterations)
   - Generated JWT tokens with 7-day expiration
   - Created authMiddleware.js for token verification
   - Built protected route pattern (/api/auth/me)
-- **Tested all authentication endpoints**
+  - Tested all endpoints with Thunder Client
   - Verified user registration (Alejandra admin account created)
   - Confirmed login with JWT token generation
   - Validated protected route access with Bearer token
   - Tested security with invalid tokens (401 responses working)
+- **Built complete authentication system - Frontend** (March 8, Day)
+  - Installed axios and react-router-dom dependencies
+  - Created AuthContext.jsx for global authentication state management
+  - Implemented auto-login using localStorage (checks token on app initialization)
+  - Built Login page with Material-UI (purple gradient design)
+  - Created ProtectedRoute component for route security
+  - Built Dashboard layout with welcome message and feature cards (Citas, Clientes, Pagos, Inventario)
+  - Connected frontend to backend JWT API endpoints
+  - Implemented logout functionality (clears localStorage and redirects)
+  - Fixed CSS layout issues (removed Vite template constraints for fullscreen)
+  - Tested complete end-to-end auth flow (login → dashboard → logout → refresh)
+  - Captured 6 screenshots for thesis documentation
 
 ### Challenges Faced
 - Understanding bcrypt salt rounds and hashing iterations
@@ -89,6 +101,11 @@ Use this document to track your progress each week. This will be valuable for yo
 - Learning Bearer token authentication standard format
 - Understanding middleware execution flow and next() function
 - Supabase dual-URL configuration (pooled vs direct connection)
+- Understanding React Context vs localStorage (memory vs persistence)
+- Grasping the complete refresh flow (how auto-login works step-by-step)
+- Understanding why ProtectedRoute needs loading state (prevents flash of login page)
+- Debugging layout issues (Vite template CSS constraining width to 1280px)
+- Windows CMD multi-line commit message errors
 
 ### Solutions Found
 - Learned that salt rounds = 2^n iterations (10 rounds = 1,024 hashes for security)
@@ -96,6 +113,11 @@ Use this document to track your progress each week. This will be valuable for yo
 - Discovered "Bearer <token>" is HTTP standard (RFC 6750) for token-based auth
 - Realized middleware is like airport security - checks credentials before allowing access
 - Configured DATABASE_URL for app queries, DIRECT_URL for migrations (PgBouncer limitation)
+- Understood AuthContext = in-memory state (cleared on refresh), localStorage = persistent storage
+- Learned complete refresh flow: localStorage → verify with backend → populate AuthContext → show dashboard
+- Discovered ProtectedRoute loading state prevents UI flash while checking authentication
+- Fixed layout by removing max-width constraint and centering styles from #root
+- Used single-line commit messages for Windows CMD compatibility
 
 ### Learnings This Week
 - **Password Security:** Never store plain text passwords; bcrypt creates one-way hashes
@@ -107,12 +129,20 @@ Use this document to track your progress each week. This will be valuable for yo
 - **Bearer Token Standard:** Industry standard format for API authentication
 - **Destructuring Trick:** Removing sensitive data from responses (password exclusion)
 - **bcrypt.compare():** Why you can't use === to compare plain text vs hashed passwords
+- **React Context API:** Global state management for sharing data across components
+- **localStorage Persistence:** Survives page refreshes and browser restarts (unlike memory)
+- **Auto-login Mechanics:** Check localStorage → verify token → populate state → render protected content
+- **Protected Route Pattern:** Wrapper component that checks authentication before rendering children
+- **Environment Variables in Vite:** Must prefix with VITE_ to expose to client-side code
+- **AuthContext vs localStorage:** Context = temporary in-memory sharing, localStorage = permanent browser storage
+- **Complete Auth Flow:** Login → save token → refresh → check localStorage → verify backend → stay logged in
 
 ### Next Week Priorities
-- Connect frontend to backend authentication endpoints
-- Build login page UI with Material-UI
-- Implement protected routes on frontend with React Router
-- Start client booking interface (landing page + calendar)
+- Start client management features (CRUD operations)
+- Build client list page with search and filters
+- Create client detail pages
+- Implement appointment creation form (for Alejandra to manually create appointments)
+- Begin Google Calendar integration research
 
 ---
 
