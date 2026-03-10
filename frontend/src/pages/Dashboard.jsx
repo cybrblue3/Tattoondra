@@ -81,7 +81,8 @@ import { useAuth } from '../contexts/AuthContext';
 
             {/* Clients Card */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
+              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+              onClick={() => navigate('/dashboard/clients')}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <People sx={{ fontSize: 50, color: '#764ba2', mb: 2 }} />
                   <Typography variant="h6" gutterBottom>

@@ -21,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // ROUTES
 // Import routes
   const authRoutes = require('./routes/authRoutes');
+  const clientRoutes = require('./routes/clientRoutes');
 
 // Health check
 app.get('/health', (req, res) => {
@@ -34,9 +35,11 @@ app.get('/health', (req, res) => {
 // Auth routes
   app.use('/api/auth', authRoutes);
   
-// API routes will be added here
-// app.use('/api/appointments', require('./routes/appointments'));
-// app.use('/api/clients', require('./routes/clients'));
+// Client routes
+  app.use('/api/clients', clientRoutes);
+
+  // API routes will be added here
+  // app.use('/api/appointments', require('./routes/appointments'));
 // app.use('/api/payments', require('./routes/payments'));
 // app.use('/api/materials', require('./routes/materials'));
 
