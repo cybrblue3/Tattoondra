@@ -23,9 +23,9 @@ import { useState, useEffect } from 'react';
     DialogContentText,
     DialogActions
   } from '@mui/material';
-  import { Add as AddIcon, Delete as DeleteIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+  import { Add as AddIcon, Delete as DeleteIcon, ArrowBack as ArrowBackIcon, CalendarMonth as CalendarIcon, ViewList as TableIcon } from '@mui/icons-material';
   import { useAuth } from '../contexts/AuthContext';
-
+  import CalendarView from '../components/CalendarView';
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   // Status color mapping
@@ -79,6 +79,7 @@ import { useState, useEffect } from 'react';
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'calendar'
 
     // Delete dialog
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -156,29 +157,42 @@ import { useState, useEffect } from 'react';
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Box display="flex" alignItems="center" gap={2}>
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate('/dashboard')}
-            >
-              Dashboard
-            </Button>
-            <Typography variant="h4" component="h1">
-              Citas
-            </Typography>
+            <Box display="flex" alignItems="center" gap={2}>
+              <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/dashboard')}
+              >
+                Dashboard
+              </Button>
+              <Typography variant="h4" component="h1">
+                Citas
+              </Typography>
+            </Box>
+
+            <Box display="flex" gap={2}>
+              {/* View Toggle Button */}
+              <Button
+                variant="outlined"
+                startIcon={viewMode === 'table' ? <CalendarIcon /> : <TableIcon />}
+                onClick={() => setViewMode(viewMode === 'table' ? 'calendar' : 'table')}
+                sx={{ borderColor: '#667eea', color: '#667eea' }}
+              >
+                {viewMode === 'table' ? 'Vista Calendario' : 'Vista Tabla'}
+              </Button>
+
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/dashboard/appointments/new')}
+                sx={{
+                  background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                  color: 'white'
+                }}
+              >
+                Nueva Cita
+              </Button>
+            </Box>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/dashboard/appointments/new')}
-            sx={{
-              background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-              color: 'white'
-            }}
-          >
-            Nueva Cita
-          </Button>
-        </Box>
 
         {/* Filters */}
         <Paper sx={{ p: 2, mb: 3 }}>
@@ -206,75 +220,81 @@ import { useState, useEffect } from 'react';
           </Box>
         </Paper>
 
-        {/* Table */}
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell><strong>Cliente</strong></TableCell>
-                <TableCell><strong>Fecha</strong></TableCell>
-                <TableCell><strong>Descripción</strong></TableCell>
-                <TableCell><strong>Estado</strong></TableCell>
-                <TableCell><strong>Depósito</strong></TableCell>
-                <TableCell><strong>Total</strong></TableCell>
-                <TableCell align="center"><strong>Acciones</strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {appointments.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    No hay citas registradas
-                  </TableCell>
-                </TableRow>
-              ) : (
-                appointments.map((appointment) => (
-                  <TableRow
-                    key={appointment.id}
-                    hover
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() => navigate(`/dashboard/appointments/${appointment.id}`)}
+        {/* Conditional View: Table or Calendar */}
+  {viewMode === 'table' ? (
+    // TABLE VIEW
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+            <TableCell><strong>Cliente</strong></TableCell>
+            <TableCell><strong>Fecha</strong></TableCell>
+            <TableCell><strong>Descripción</strong></TableCell>
+            <TableCell><strong>Estado</strong></TableCell>
+            <TableCell><strong>Depósito</strong></TableCell>
+            <TableCell><strong>Total</strong></TableCell>
+            <TableCell align="center"><strong>Acciones</strong></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {appointments.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} align="center">
+                No hay citas registradas
+              </TableCell>
+            </TableRow>
+          ) : (
+            appointments.map((appointment) => (
+              <TableRow
+                key={appointment.id}
+                hover
+                sx={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/dashboard/appointments/${appointment.id}`)}
+              >
+                <TableCell>{appointment.client.name}</TableCell>
+                <TableCell>{formatDate(appointment.date)}</TableCell>
+                <TableCell>
+                  {appointment.description || 'Sin descripción'}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={getStatusLabel(appointment.status)}
+                    color={getStatusColor(appointment.status)}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={appointment.depositReceived ? 'Pagado' : 'Pendiente'}
+                    color={appointment.depositReceived ? 'success' : 'warning'}
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell>
+                  {appointment.totalPrice ? formatCurrency(appointment.totalPrice) : '-'}
+                </TableCell>
+                <TableCell align="center">
+                  <Button
+                    color="error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDeleteDialog(appointment);
+                    }}
                   >
-                    <TableCell>{appointment.client.name}</TableCell>
-                    <TableCell>{formatDate(appointment.date)}</TableCell>
-                    <TableCell>
-                      {appointment.description || 'Sin descripción'}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getStatusLabel(appointment.status)}
-                        color={getStatusColor(appointment.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={appointment.depositReceived ? 'Pagado' : 'Pendiente'}
-                        color={appointment.depositReceived ? 'success' : 'warning'}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {appointment.totalPrice ? formatCurrency(appointment.totalPrice) : '-'}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Button
-                        color="error"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDeleteDialog(appointment);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                    <DeleteIcon />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  ) : (
+    // CALENDAR VIEW
+    <CalendarView appointments={appointments} />
+  )}
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>

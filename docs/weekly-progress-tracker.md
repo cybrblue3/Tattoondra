@@ -364,8 +364,8 @@ Use this document to track your progress each week. This will be valuable for yo
 
 ---
 
-## WEEK 4: UI Polish & Dashboard Analytics
-**Dates:** March 14 to March 14
+## WEEK 4: UI Polish, Dashboard Analytics & Calendar View
+**Dates:** March 14 to March 15 (Saturday-Sunday)
 **Hours Logged:** ______
 
 ### Goals
@@ -373,8 +373,8 @@ Use this document to track your progress each week. This will be valuable for yo
 - [X] Spanish translations for status labels (user-facing UI)
 - [X] Back-to-Dashboard navigation buttons
 - [X] Visual design improvements (card balance and symmetry)
-- [ ] Calendar view for Alejandra (month/week view of appointments)
-- [ ] Google Calendar API integration (sync appointments to personal calendar)
+- [X] Calendar view for Alejandra (month/week/day/agenda views with table toggle)
+- [ ] Google Calendar API integration (sync appointments to personal calendar) - DEFERRED to Week 5
 - [ ] Mobile responsiveness testing
 
 ### What We Accomplished
@@ -417,6 +417,57 @@ Use this document to track your progress each week. This will be valuable for yo
     - Verified navigation flow (Dashboard → Appointments → back, Dashboard → Clients → back)
     - Confirmed Spanish status labels on both list and detail views
     - Captured 4 screenshots for thesis documentation (Dashboard, Appointments, Detail, Clients)
+- **Calendar View with Table Toggle** (Sunday, March 15)
+  - **Library Installation**
+    - Installed `react-big-calendar` and `moment` libraries
+    - Resolved npm security vulnerability with `npm audit fix`
+  - **Calendar Component Creation** (CalendarView.jsx)
+    - Created dedicated CalendarView component in `frontend/src/components/`
+    - Configured moment localizer for date handling
+    - Manually configured Spanish locale (months, weekdays, UI labels)
+      - Used `moment.updateLocale()` to define Spanish translations
+      - Fixed import order issue (moment → locale setup → localizer creation)
+    - Transformed appointments data into calendar events format
+      - Event title: `${client.name} - ${description}`
+      - Calculated end time from start + duration (converted minutes to milliseconds)
+      - Stored full appointment object in `resource` property
+  - **Color-Coded Events by Status**
+    - Created `getStatusColor()` function mapping status to hex colors
+    - Blue (#2196f3) for CONFIRMED
+    - Green (#4caf50) for COMPLETED
+    - Red (#f44336) for CANCELLED
+    - Orange (#ff9800) for NO_SHOW
+    - Gray (#9e9e9e) for PENDING_CONFIRMATION
+    - Used `eventPropGetter` (not `eventStyleGetter` - important API difference!)
+    - Debugged color issue: learned to use console.log strategically to trace data flow
+  - **Calendar Navigation & State Management**
+    - Added `date` state to track currently displayed date/month
+    - Added `view` state to track current view mode (month/week/day/agenda)
+    - Implemented `onNavigate` handler for Previous/Next/Today buttons
+    - Implemented `onView` handler for view mode switching
+    - Spanish navigation labels: Anterior, Siguiente, Hoy, Mes, Semana, Día, Agenda
+  - **View Toggle Button** (Appointments.jsx)
+    - Added `viewMode` state ('table' or 'calendar')
+    - Created toggle button with dynamic icon (CalendarIcon ↔ TableIcon)
+    - Dynamic button text: "Vista Calendario" ↔ "Vista Tabla"
+    - Conditional rendering: `viewMode === 'table' ? <Table /> : <CalendarView />`
+    - Positioned in header next to "Nueva Cita" button
+  - **Minimal Styling** (CalendarView.css)
+    - Applied user's "less is more" design philosophy
+    - Purple accent colors (#667eea) for toolbar buttons matching brand
+    - Subtle today highlight (rgba(102, 126, 234, 0.05))
+    - Clean toolbar with white buttons and purple borders
+    - Hover effects with opacity changes (no overwhelming animations)
+  - **Event Interaction**
+    - Click on calendar event navigates to appointment detail page
+    - Uses same navigation pattern as table view for consistency
+  - **Testing & Documentation**
+    - Tested all 4 view modes (Month, Week, Day, Agenda)
+    - Verified color-coding with 4 test appointments (different statuses)
+    - Confirmed navigation buttons work (Anterior, Siguiente, Hoy)
+    - Tested view toggle between table and calendar
+    - Verified Spanish locale displays correctly (marzo, dom, lun, mar, etc.)
+    - Captured 5 screenshots for thesis (month view, week view, agenda view, table view, toggle button)
 
 ### Challenges Faced
 - Understanding useEffect dependency arrays and infinite loop prevention
@@ -425,6 +476,10 @@ Use this document to track your progress each week. This will be valuable for yo
 - Initial design struggle - wanted visual balance but not cluttered UI
 - Debated showing revenue on Pagos card vs keeping it minimal
 - Card width inconsistency on some screens (Inventario appearing slimmer)
+- Spanish locale not loading with Vite (import vs require confusion)
+- Calendar navigation buttons not working (missing state management)
+- Event colors all showing blue (wrong prop name - eventStyleGetter vs eventPropGetter)
+- Debugging React component props and understanding data flow
 
 ### Solutions Found
 - Learned empty dependency array [] means "run once on mount" - prevents infinite API loops
@@ -433,6 +488,10 @@ Use this document to track your progress each week. This will be valuable for yo
 - Chose minimalist design philosophy: numbers for quick-glance metrics (Citas, Clientes), symbols for navigation cards (Pagos, Inventario)
 - User brilliantly suggested using symbols ($ and #) instead of badges - cleaner visual balance
 - Applied width: '100%' explicitly to force all cards to fill their Grid container equally
+- Used `moment.updateLocale()` to manually define Spanish translations (Vite doesn't support require())
+- Added `date` and `view` state with `onNavigate` and `onView` handlers for calendar interactivity
+- Changed from `eventStyleGetter` to `eventPropGetter` (correct react-big-calendar API)
+- Used console.log strategically to trace data flow and identify where props were failing
 
 ### Learnings This Week
 - **useEffect Dependency Array:** Empty [] = run once on mount, prevents infinite loops from state updates
@@ -448,13 +507,26 @@ Use this document to track your progress each week. This will be valuable for yo
 - **Symbol Usage in UI:** $ and # are universally recognizable, provide visual interest without clutter
 - **Independent Thinking:** User challenged design suggestion (revenue on card) - shows critical thinking
 - **Iterative Design:** Tried badges → didn't like → bigger icons → still not right → symbols → perfect!
+- **react-big-calendar Library:** Industry-standard calendar component with month/week/day/agenda views
+- **Moment.js Localizer:** Handles date formatting and locale-specific labels (months, days)
+- **Manual Locale Configuration:** When library imports fail (Vite/ES modules), manually define translations
+- **Event Prop Transformation:** Converting domain data (appointments) to calendar events format
+- **Duration Calculation:** Converting minutes to milliseconds (duration * 60000) for end time calculation
+- **Component State for Interactivity:** Calendar needs `date` and `view` state to respond to user actions
+- **eventPropGetter vs eventStyleGetter:** API naming differences matter - wrong prop name = feature doesn't work
+- **Debugging Strategy:** Use console.log to trace data through component lifecycle (events → eventPropGetter → styles)
+- **Data Flow Verification:** Check if data exists → check if function is called → check if output is correct
+- **Reading Library Documentation:** Understanding correct prop names prevents hours of debugging
+- **Conditional Rendering Pattern:** Ternary operator for switching between two component views
+- **Dynamic Button State:** Icon and text change based on current mode (table vs calendar)
 
 ### Next Week Priorities
+- ✅ ~~Calendar view~~ (COMPLETED!)
 - Address card width inconsistency issue (Inventario appearing slimmer on some screens)
 - Mobile responsiveness testing (test on phone/tablet)
-- Calendar view (visual calendar to see appointments by date)
-- Optional: Google Calendar API integration research
+- Google Calendar API integration (two-way sync between app and Google Calendar)
 - Optional: Export appointment data (CSV/PDF reports)
+- Optional: Email notifications for new appointments
 
 ---
 
