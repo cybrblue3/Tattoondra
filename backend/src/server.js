@@ -22,6 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 // Import routes
   const authRoutes = require('./routes/authRoutes');
   const clientRoutes = require('./routes/clientRoutes');
+  const appointmentRoutes = require('./routes/appointmentRoutes');
+  const paymentRoutes = require('./routes/paymentRoutes');
 
 // Health check
 app.get('/health', (req, res) => {
@@ -38,8 +40,14 @@ app.get('/health', (req, res) => {
 // Client routes
   app.use('/api/clients', clientRoutes);
 
+// Appointment routes
+  app.use('/api/appointments', appointmentRoutes);
+
+// Payment routes
+  app.use('/api/payments', paymentRoutes);
+
   // API routes will be added here
-  // app.use('/api/appointments', require('./routes/appointments'));
+// app.use('/api/appointments', require('./routes/appointments'));
 // app.use('/api/payments', require('./routes/payments'));
 // app.use('/api/materials', require('./routes/materials'));
 

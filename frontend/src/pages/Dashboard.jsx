@@ -66,7 +66,8 @@ import { useAuth } from '../contexts/AuthContext';
           <Grid container spacing={3}>
             {/* Appointments Card */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
+              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+              onClick={() => navigate('/dashboard/appointments')}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <CalendarMonth sx={{ fontSize: 50, color: '#667eea', mb: 2 }} />
                   <Typography variant="h6" gutterBottom>

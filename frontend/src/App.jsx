@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
   import Clients from './pages/Clients';
   import ClientDetail from './pages/ClientDetail';
   import ClientForm from './pages/ClientForm';
+  import Appointments from './pages/Appointments';
+  import AppointmentDetail from './pages/AppointmentDetail';
+  import AppointmentForm from './pages/AppointmentForm';
 
   function App() {
     return (
@@ -64,6 +67,45 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
                   </ProtectedRoute>
                 }
               />
+              {/* Protected route - Appointments */}
+            <Route
+              path="/dashboard/appointments"
+              element={
+                <ProtectedRoute>
+                  <Appointments />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - New Appointment Form */}
+            <Route
+              path="/dashboard/appointments/new"
+              element={
+                <ProtectedRoute>
+                  <AppointmentForm />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - Edit Appointment Form */}
+            <Route
+              path="/dashboard/appointments/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AppointmentForm />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - Appointment Detail */}
+            <Route
+              path="/dashboard/appointments/:id"
+              element={
+                <ProtectedRoute>
+                  <AppointmentDetail />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Catch all - redirect to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
