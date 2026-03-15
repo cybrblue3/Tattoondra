@@ -26,7 +26,9 @@ import { useState, useEffect, useRef } from 'react';
     Visibility as ViewIcon,
     Edit as EditIcon,
     Delete as DeleteIcon,
-    People
+    People,
+    ArrowBack as ArrowBackIcon
+
   } from '@mui/icons-material';
 
   const Clients = () => {
@@ -178,10 +180,18 @@ import { useState, useEffect, useRef } from 'react';
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" fontWeight="bold">
-            Clientes
-          </Typography>
+         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/dashboard')}
+            >
+              Dashboard
+            </Button>
+            <Typography variant="h4" fontWeight="bold">
+              Clientes
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -190,7 +200,7 @@ import { useState, useEffect, useRef } from 'react';
           >
             Agregar Cliente
           </Button>
-        </Box>
+         </Box>
 
         {/* Error Alert */}
         {error && (

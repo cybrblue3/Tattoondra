@@ -1,4 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';  
+import { useState, useEffect } from 'react';
   import { useNavigate } from 'react-router-dom';
   import {
     Box,
@@ -10,7 +12,8 @@ import { useAuth } from '../contexts/AuthContext';
     Toolbar,
     Card,
     CardContent,
-    Grid
+    Grid,
+    Chip
   } from '@mui/material';
   import {
     Logout as LogoutIcon,
@@ -21,13 +24,68 @@ import { useAuth } from '../contexts/AuthContext';
   } from '@mui/icons-material';
 
   const Dashboard = () => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const { token } = useAuth();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [appointments, setAppointments] = useState([]);
+    const [clients, setClients] = useState([]);
+    const [totalRevenue, setTotalRevenue] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     const handleLogout = () => {
       logout();
       navigate('/login');
     };
+
+        // Fetch appointments
+      const fetchAppointments = async () => {
+        try {
+          const response = await axios.get(`${API_URL}/api/appointments`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setAppointments(response.data.appointments);
+        } catch (error) {
+          console.error('Error fetching appointments:', error);
+        }
+      };
+
+      // Fetch clients
+      const fetchClients = async () => {
+        try {
+          const response = await axios.get(`${API_URL}/api/clients`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setClients(response.data.clients);
+        } catch (error) {
+          console.error('Error fetching clients:', error);
+        }
+      };
+
+      // Calculate revenue (we'll do this next)
+      const calculateRevenue = async () => {
+        // TODO: We'll add this logic in a moment
+        setTotalRevenue(0); // Placeholder for now
+      };
+
+      useEffect(() => {
+    const fetchData = async () => {
+      await fetchAppointments();
+      await fetchClients();
+      await calculateRevenue();
+      setLoading(false); // Done loading!
+    };
+
+        fetchData();
+      }, []); // Empty array = run once when component mounts
+
+       // Calculate upcoming appointments (future dates only)
+      const upcomingAppointments = appointments.filter(apt => {
+        return new Date(apt.date) > new Date(); // Date is in the future
+      }).length;
+
+      // Active clients count
+      const activeClientsCount = clients.length;
 
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
@@ -66,12 +124,15 @@ import { useAuth } from '../contexts/AuthContext';
           <Grid container spacing={3}>
             {/* Appointments Card */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
-              onClick={() => navigate('/dashboard/appointments')}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+                onClick={() => navigate('/dashboard/appointments')}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <CalendarMonth sx={{ fontSize: 50, color: '#667eea', mb: 2 }} />
+                  <Typography variant="h3" fontWeight="bold" color="primary">
+                    {upcomingAppointments}
+                  </Typography>
                   <Typography variant="h6" gutterBottom>
-                    Citas
+                    Citas Próximas
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Gestionar citas
@@ -82,12 +143,15 @@ import { useAuth } from '../contexts/AuthContext';
 
             {/* Clients Card */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
               onClick={() => navigate('/dashboard/clients')}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <People sx={{ fontSize: 50, color: '#764ba2', mb: 2 }} />
+                   <Typography variant="h3" fontWeight="bold" color="primary">
+                      {activeClientsCount}
+                    </Typography>
                   <Typography variant="h6" gutterBottom>
-                    Clientes
+                    Clientes Activos
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Base de datos
@@ -98,9 +162,12 @@ import { useAuth } from '../contexts/AuthContext';
 
             {/* Payments Card */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Payments sx={{ fontSize: 50, color: '#667eea', mb: 2 }} />
+                  <Typography variant="h3" fontWeight="bold" color="primary">
+                    $
+                  </Typography>
                   <Typography variant="h6" gutterBottom>
                     Pagos
                   </Typography>
@@ -113,9 +180,12 @@ import { useAuth } from '../contexts/AuthContext';
 
             {/* Inventory Card */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Inventory sx={{ fontSize: 50, color: '#764ba2', mb: 2 }} />
+                  <Typography variant="h3" fontWeight="bold" color="primary">
+                    #
+                  </Typography>
                   <Typography variant="h6" gutterBottom>
                     Inventario
                   </Typography>

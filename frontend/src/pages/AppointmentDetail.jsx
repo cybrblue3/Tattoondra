@@ -48,6 +48,18 @@ import { useState, useEffect } from 'react';
     }
   };
 
+  // Status label translation (English → Spanish)
+  const getStatusLabel = (status) => {
+    switch(status) {
+      case 'CONFIRMED': return 'CONFIRMADA';
+      case 'COMPLETED': return 'COMPLETADA';
+      case 'CANCELLED': return 'CANCELADA';
+      case 'NO_SHOW': return 'NO ASISTIÓ';
+      case 'PENDING_CONFIRMATION': return 'PENDIENTE DE CONFIRMACIÓN';
+      default: return status;
+    }
+  };
+
   // Format date
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('es-MX', {
@@ -245,7 +257,7 @@ import { useState, useEffect } from 'react';
                 Cita - {appointment.client.name}
               </Typography>
               <Chip
-                label={appointment.status}
+                label={getStatusLabel(appointment.status)}
                 color={getStatusColor(appointment.status)}
                 sx={{ mb: 2 }}
               />

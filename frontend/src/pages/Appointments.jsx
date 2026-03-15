@@ -23,7 +23,7 @@ import { useState, useEffect } from 'react';
     DialogContentText,
     DialogActions
   } from '@mui/material';
-  import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+  import { Add as AddIcon, Delete as DeleteIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
   import { useAuth } from '../contexts/AuthContext';
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -37,6 +37,18 @@ import { useState, useEffect } from 'react';
       case 'NO_SHOW': return 'warning';
       case 'PENDING_CONFIRMATION': return 'default';
       default: return 'default';
+    }
+  };
+
+  // Status label translation (English → Spanish)
+  const getStatusLabel = (status) => {
+    switch(status) {
+      case 'CONFIRMED': return 'CONFIRMADA';
+      case 'COMPLETED': return 'COMPLETADA';
+      case 'CANCELLED': return 'CANCELADA';
+      case 'NO_SHOW': return 'NO ASISTIÓ';
+      case 'PENDING_CONFIRMATION': return 'PENDIENTE';
+      default: return status;
     }
   };
 
@@ -144,9 +156,17 @@ import { useState, useEffect } from 'react';
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4" component="h1">
-            Citas
-          </Typography>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/dashboard')}
+            >
+              Dashboard
+            </Button>
+            <Typography variant="h4" component="h1">
+              Citas
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -222,7 +242,7 @@ import { useState, useEffect } from 'react';
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={appointment.status}
+                        label={getStatusLabel(appointment.status)}
                         color={getStatusColor(appointment.status)}
                         size="small"
                       />

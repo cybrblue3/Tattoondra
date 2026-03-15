@@ -364,37 +364,97 @@ Use this document to track your progress each week. This will be valuable for yo
 
 ---
 
-## WEEK 4: Calendar Integration & Advanced Features
-**Dates:** __________ to __________
+## WEEK 4: UI Polish & Dashboard Analytics
+**Dates:** March 14 to March 14
 **Hours Logged:** ______
 
 ### Goals
+- [X] Dashboard analytics (upcoming appointments count, active clients count)
+- [X] Spanish translations for status labels (user-facing UI)
+- [X] Back-to-Dashboard navigation buttons
+- [X] Visual design improvements (card balance and symmetry)
 - [ ] Calendar view for Alejandra (month/week view of appointments)
 - [ ] Google Calendar API integration (sync appointments to personal calendar)
-- [ ] Block/unblock dates functionality (mark days as unavailable)
-- [ ] Dashboard analytics (upcoming appointments, revenue this month, clients this month)
-- [ ] Email notifications (optional - notify Alejandra of new appointments)
-- [ ] Export appointment data (CSV/PDF reports)
+- [ ] Mobile responsiveness testing
 
 ### What We Accomplished
--
--
+- **UI Polish - Spanish Status Translations** (Saturday, March 14)
+  - Created `getStatusLabel()` function to translate appointment status enums
+  - Updated Appointments.jsx to show Spanish labels in status chips (Confirmada, Completada, Cancelada, No asistió, Pendiente)
+  - Updated AppointmentDetail.jsx status chip with Spanish translations
+  - Database still uses English enums (CONFIRMED, COMPLETED, etc.) - only UI displays Spanish
+  - Used switch statement pattern for clean enum → display label mapping
+- **UI Polish - Navigation Improvements** (Saturday, March 14)
+  - Added ArrowBackIcon import to Appointments.jsx and Clients.jsx
+  - Created back-to-Dashboard buttons with icon + "Dashboard" label
+  - Modified header structure with flexbox layout (back button + page title)
+  - Improved navigation flow (list pages now have quick return to Dashboard)
+- **Dashboard Analytics with Live Data** (Saturday, March 14)
+  - **State Management**
+    - Added useState for appointments, clients, totalRevenue, loading
+    - Imported axios and useAuth for API calls with JWT authentication
+    - Set up API_URL constant from environment variables
+  - **Data Fetching**
+    - Created fetchAppointments() with error handling
+    - Created fetchClients() with error handling
+    - Added useEffect with empty dependency array [] for mount-only execution
+    - Implemented loading state to prevent UI flash
+  - **Metric Calculations**
+    - Upcoming appointments: filter appointments where date > today, get .length
+    - Active clients: simple clients.length count
+    - Learned Array.filter() for conditional filtering
+    - Learned Date comparisons with new Date()
+  - **Visual Design & Balance**
+    - Updated Citas card to display upcomingAppointments count
+    - Updated Clientes card to display activeClientsCount
+    - Added "$" symbol to Pagos card (Typography h3 bold, same style as numbers)
+    - Added "#" symbol to Inventario card (represents items/materials)
+    - Applied minHeight: 220 to all cards for vertical symmetry
+    - Applied width: '100%' to all cards for horizontal consistency
+    - Result: Clean, balanced design with two cards showing dynamic numbers, two showing symbolic icons
+  - **Testing**
+    - Tested Dashboard analytics display with real data
+    - Verified navigation flow (Dashboard → Appointments → back, Dashboard → Clients → back)
+    - Confirmed Spanish status labels on both list and detail views
+    - Captured 4 screenshots for thesis documentation (Dashboard, Appointments, Detail, Clients)
 
 ### Challenges Faced
--
--
+- Understanding useEffect dependency arrays and infinite loop prevention
+- Grasping the purpose of loading state (not for data freshness, but for preventing UI flash)
+- Learning JSX curly braces {} syntax for embedding JavaScript expressions
+- Initial design struggle - wanted visual balance but not cluttered UI
+- Debated showing revenue on Pagos card vs keeping it minimal
+- Card width inconsistency on some screens (Inventario appearing slimmer)
 
 ### Solutions Found
--
--
+- Learned empty dependency array [] means "run once on mount" - prevents infinite API loops
+- Understood loading state shows spinner while fetching, preventing blank screen flash
+- Discovered {} in JSX evaluates JavaScript - without braces, shows literal text
+- Chose minimalist design philosophy: numbers for quick-glance metrics (Citas, Clientes), symbols for navigation cards (Pagos, Inventario)
+- User brilliantly suggested using symbols ($ and #) instead of badges - cleaner visual balance
+- Applied width: '100%' explicitly to force all cards to fill their Grid container equally
 
 ### Learnings This Week
--
--
+- **useEffect Dependency Array:** Empty [] = run once on mount, prevents infinite loops from state updates
+- **JSX Expression Syntax:** Use {variable} to embed JavaScript, plain text without braces
+- **Array.filter() Method:** Creates new array with elements that pass condition test
+- **Date Comparisons:** new Date(string) converts ISO dates, > operator compares timestamps
+- **Design Philosophy Trade-offs:** Data-rich dashboards vs clean navigation hubs - context matters
+- **UX for Non-technical Users:** Tattoo artist wants simple, easy-to-use interface over feature-heavy
+- **Visual Balance Principles:** Cards need similar visual weight - numbers OR symbols, not mixed blank/filled
+- **Material-UI Grid System:** xs/sm/md props control responsive breakpoints, all using same values = same width
+- **Typography Variants:** h3 for big numbers/symbols, h6 for titles, body2 for descriptions
+- **Minimalist Design:** "Less is more" - especially for non-technical users, avoid overwhelming UI
+- **Symbol Usage in UI:** $ and # are universally recognizable, provide visual interest without clutter
+- **Independent Thinking:** User challenged design suggestion (revenue on card) - shows critical thinking
+- **Iterative Design:** Tried badges → didn't like → bigger icons → still not right → symbols → perfect!
 
 ### Next Week Priorities
--
--
+- Address card width inconsistency issue (Inventario appearing slimmer on some screens)
+- Mobile responsiveness testing (test on phone/tablet)
+- Calendar view (visual calendar to see appointments by date)
+- Optional: Google Calendar API integration research
+- Optional: Export appointment data (CSV/PDF reports)
 
 ---
 
