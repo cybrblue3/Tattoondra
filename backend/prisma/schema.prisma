@@ -54,6 +54,11 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Google Calendar OAuth tokens
+  googleAccessToken  String? // Short-lived token for API calls
+  googleRefreshToken String? // Long-lived token for refreshing access
+  googleTokenExpiry  DateTime? // When access token expires
+
   // Relations
   clientAppointments Appointment[] @relation("ClientAppointments")
   artistAppointments Appointment[] @relation("ArtistAppointments")
@@ -75,6 +80,9 @@ model Appointment {
   notes             String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+
+  // Google Calendar Integration
+  googleCalendarEventId String? // Store Google Calendar event ID for sync
 
   // Relations
   clientId          String

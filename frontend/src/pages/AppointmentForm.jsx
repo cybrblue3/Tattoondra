@@ -69,8 +69,14 @@ import { useState, useEffect } from 'react';
 
             const appointment = response.data.appointment;
 
-            // Convert database date to datetime-local format
-            const dateForInput = new Date(appointment.date).toISOString().slice(0, 16);
+            // Convert database date to datetime-local format (preserve local timezone)
+            const date = new Date(appointment.date);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const dateForInput = `${year}-${month}-${day}T${hours}:${minutes}`;
 
             setFormData({
               clientId: appointment.clientId,

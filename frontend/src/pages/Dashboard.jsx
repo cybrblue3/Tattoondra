@@ -20,7 +20,8 @@ import { useState, useEffect } from 'react';
     CalendarMonth,
     People,
     Payments,
-    Inventory
+    Inventory,
+    Settings as SettingsIcon
   } from '@mui/icons-material';
 
   const Dashboard = () => {
@@ -98,6 +99,14 @@ import { useState, useEffect } from 'react';
             <Typography variant="body2" sx={{ mr: 2 }}>
               {user?.name || user?.email}
             </Typography>
+            <Button
+              color="inherit"
+              onClick={() => navigate('/dashboard/settings')}
+              startIcon={<SettingsIcon />}
+              sx={{ mr: 1 }}
+            >
+              Configuración
+            </Button>
             <Button
               color="inherit"
               onClick={handleLogout}

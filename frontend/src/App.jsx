@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
   import Appointments from './pages/Appointments';
   import AppointmentDetail from './pages/AppointmentDetail';
   import AppointmentForm from './pages/AppointmentForm';
+  import Settings from './pages/Settings';
 
   function App() {
     return (
@@ -103,6 +104,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
               element={
                 <ProtectedRoute>
                   <AppointmentDetail />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - Settings */}
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />

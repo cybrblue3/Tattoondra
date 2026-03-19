@@ -530,37 +530,136 @@ Use this document to track your progress each week. This will be valuable for yo
 
 ---
 
-## WEEK 5: Payment Management & Session Tracking
-**Dates:** __________ to __________
+## WEEK 5: Google Calendar API Integration
+**Dates:** March 17-18, 2026
 **Hours Logged:** ______
 
 ### Goals
-- [ ] Session tracking (multiple sessions per appointment for large tattoos)
-- [ ] Session detail view (date, duration, work completed, photos)
-- [ ] Payment recording (deposit, session payments, final payment)
-- [ ] Payment method tracking (cash, card, transfer)
-- [ ] Session payment status (paid, pending, partial)
-- [ ] Basic finance dashboard (total revenue, pending payments)
+- [X] Google Calendar OAuth2 authentication setup
+- [X] Token management (access token + refresh token storage)
+- [X] Auto-refresh expired tokens
+- [X] Sync appointment creation to Google Calendar
+- [X] Sync appointment updates to Google Calendar
+- [X] Sync appointment deletion to Google Calendar
+- [X] Settings page for calendar connection management
+- [X] Edge case testing (disconnected state handling)
+
+**Note:** Original Week 5 goals (Session Tracking & Payment Management) were moved to future weeks since Payment Management was already completed in Week 3.
 
 ### What We Accomplished
--
--
+- **Google Calendar OAuth2 Setup** (March 17, Night)
+  - Created Google Cloud project and enabled Google Calendar API
+  - Configured OAuth consent screen with Calendar Events scope
+  - Generated OAuth credentials (Client ID & Client Secret)
+  - Installed `googleapis` package in backend
+  - Created database migration for token storage (googleAccessToken, googleRefreshToken, googleTokenExpiry)
+
+- **Backend OAuth Routes** (backend/src/routes/googleAuthRoutes.js)
+  - Built `/api/auth/google` endpoint (initiates OAuth flow)
+  - Implemented JWT token verification via query parameter (browser redirects can't use headers)
+  - Built `/api/auth/google/callback` endpoint (exchanges code for tokens)
+  - Created `/api/auth/google/status` endpoint (checks connection status)
+  - Created `/api/auth/google/disconnect` endpoint (revokes calendar access)
+  - Fixed missing refresh token issue by adding `prompt: 'consent'` parameter
+
+- **Frontend Settings Page** (frontend/src/pages/Settings.jsx)
+  - Created complete Settings page with Google Calendar integration UI
+  - Added connection status indicator (Conectado ✅ / No conectado ❌)
+  - Implemented "Conectar Google Calendar" button with loading state
+  - Implemented "Desconectar" button with confirmation
+  - Added Settings route to App.jsx
+  - Added Settings navigation button to Dashboard AppBar
+
+- **Google Calendar Service Layer** (backend/src/services/googleCalendarService.js)
+  - Built `getValidAccessToken()` function with auto-refresh logic
+    - Checks if token expired (with 5-minute safety buffer)
+    - Auto-refreshes using refresh token when needed
+    - Updates database with new access token and expiry
+  - Built `createCalendarEvent()` function
+    - Calculates end time from start + duration
+    - Sets timezone to America/Mexico_City
+    - Creates event with client name in title
+    - Returns Google Calendar event ID for storage
+  - Built `updateCalendarEvent()` function
+    - Updates existing event by event ID
+    - Syncs changes to date, time, duration, description
+  - Built `deleteCalendarEvent()` function
+    - Removes event from Google Calendar by event ID
+
+- **Database Schema Updates**
+  - Added `googleCalendarEventId` field to Appointment model
+  - Created migration: `20260317175724_add_google_calendar_event_id`
+
+- **Appointment Controller Integration** (backend/src/controllers/appointmentController.js)
+  - Imported Google Calendar service functions
+  - Modified `createAppointment()` to sync new appointments to Google Calendar
+    - Tries to create calendar event after appointment creation
+    - Stores returned event ID in appointment.googleCalendarEventId
+    - Graceful error handling (doesn't block appointment creation if calendar sync fails)
+  - Modified `updateAppointment()` to sync updates to Google Calendar
+    - Checks if appointment has googleCalendarEventId
+    - Updates Google Calendar event if it exists
+    - Graceful error handling
+  - Modified `deleteAppointment()` to delete from Google Calendar
+    - Deletes from Google Calendar before deleting from database
+    - Graceful error handling
+  - Fixed type conversion bugs (parseInt for duration, parseFloat for prices)
+
+- **Timezone Bug Fix** (frontend/src/pages/AppointmentForm.jsx)
+  - Fixed datetime display issue when editing appointments
+  - Changed from `.toISOString().slice(0, 16)` to manual date formatting
+  - Preserves local timezone instead of converting to UTC
+  - Prevents 6-hour time shift when editing appointments
+
+- **Edge Case Testing**
+  - Tested creating appointments with calendar disconnected (works without errors)
+  - Tested reconnecting calendar (existing appointments still work)
+  - Tested updating/deleting appointments without calendar connection (graceful handling)
+  - Verified all CRUD operations sync correctly with Google Calendar
+  - Confirmed token auto-refresh works (tested with expired tokens)
 
 ### Challenges Faced
--
--
+- Understanding OAuth2 flow (authorization code grant pattern)
+- Grasping the difference between access tokens and refresh tokens
+- Google only provides refresh token on FIRST authorization (not subsequent ones)
+- Browser redirects can't use Authorization headers (had to pass JWT as query parameter)
+- JWT payload structure mismatch (code used `userId` but actual payload had `id`)
+- Timezone conversion issues causing 6-hour shifts in appointment times
+- `.toISOString()` always converts to UTC, breaking local time display
+- Missing `parseInt()` conversions causing Prisma validation errors
+- Understanding `prompt: 'consent'` vs default OAuth behavior
 
 ### Solutions Found
--
--
+- Used `prompt: 'consent'` to force consent screen every time and always get refresh token
+- Passed JWT token as query parameter for browser redirects instead of headers
+- Fixed all `userId` references to use `id` (matching actual JWT payload structure)
+- Implemented 5-minute buffer when checking token expiry to prevent mid-operation failures
+- Used manual date formatting instead of `.toISOString()` to preserve local timezone
+- Added `parseInt()` and `parseFloat()` conversions for all numeric fields
+- Implemented graceful error handling (calendar sync failures don't block app operations)
+- Used try/catch blocks around all Google API calls to prevent crashes
 
 ### Learnings This Week
--
--
+- **OAuth2 Authorization Code Flow:** User redirects to Google → approves → Google redirects back with code → exchange code for tokens
+- **Access Token vs Refresh Token:** Access tokens expire (1 hour), refresh tokens are long-lived and used to get new access tokens
+- **Token Refresh Strategy:** Check expiry before each API call, auto-refresh if needed (prevents 401 errors)
+- **`access_type: 'offline'`:** Required to receive refresh token (doesn't mean literal offline access)
+- **`prompt: 'consent'`:** Forces consent screen every time, ensures fresh refresh token
+- **State Parameter Security:** Prevents CSRF attacks by passing user ID through OAuth flow
+- **Browser Redirect Limitations:** Can't send custom headers, must use query parameters
+- **Graceful Degradation:** Calendar sync failures shouldn't break core appointment functionality
+- **Timezone Handling:** `.toISOString()` converts to UTC, manual formatting preserves local time
+- **Google Calendar API Structure:** Events need start/end times, timezone, summary (title)
+- **Event ID Importance:** Must store Google's event ID to update/delete events later
+- **Service Layer Pattern:** Separate business logic (calendar operations) from controllers
+- **Edge Case Testing:** Always test disconnected/error states, not just happy path
 
 ### Next Week Priorities
--
--
+- Session tracking (multiple sessions per appointment for large tattoos)
+- Inventory Management system (materials/supplies tracking)
+- Mobile responsiveness testing
+- Optional: Email notifications for new appointments
+- Optional: Export appointment data (CSV/PDF reports)
 
 ---
 

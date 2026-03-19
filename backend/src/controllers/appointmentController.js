@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+const { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } = require('../services/googleCalendarService');
+const prisma = new PrismaClient();
 
   /**
    * GET /api/appointments
@@ -197,10 +198,10 @@ const { PrismaClient } = require('@prisma/client');
           clientId,
           artistId: artistId || null,
           date: new Date(date),
-          duration: duration || 60, // Default 1 hour
+          duration: parseInt(duration) || 60, // Default 1 hour
           description: description || '',
-          depositAmount: depositAmount || 200.00, // Default $200 deposit
-          totalPrice: totalPrice || null,
+          depositAmount: parseFloat(depositAmount) || 200.00, // Default $200 deposit
+          totalPrice: totalPrice ? parseFloat(totalPrice) : null,
           notes: notes || '',
           status: 'CONFIRMED' // Default to CONFIRMED (not PENDING!)
         },
@@ -222,6 +223,29 @@ const { PrismaClient } = require('@prisma/client');
           }
         }
       });
+
+      // Try to create Google Calendar event (if user has connected calendar)
+      try {
+        // Use the logged-in user's ID (Alejandra - the one creating the appointment)
+        const calendarEventId = await createCalendarEvent(req.user.id, {
+          date: appointment.date,
+          duration: appointment.duration,
+          clientName: appointment.client.name,
+          description: appointment.description
+        });
+
+        // Update appointment with Google Calendar event ID
+        await prisma.appointment.update({
+          where: { id: appointment.id },
+          data: { googleCalendarEventId: calendarEventId }
+        });
+
+        console.log('Google Calendar event created:', calendarEventId);
+      } catch (calendarError) {
+        // Calendar sync failed, but appointment was created successfully
+        // Don't block the appointment creation - just log the error
+        console.error('Failed to sync with Google Calendar:', calendarError.message);
+      }
 
       res.status(201).json({
         message: 'Appointment created successfully',
@@ -323,6 +347,21 @@ const { PrismaClient } = require('@prisma/client');
         }
       });
 
+      // Try to update Google Calendar event (if it exists)
+      if (appointment.googleCalendarEventId) {
+        try {
+          await updateCalendarEvent(req.user.id, appointment.googleCalendarEventId, {
+            date: appointment.date,
+            duration: appointment.duration,
+            clientName: appointment.client.name,
+            description: appointment.description
+          });
+          console.log('Google Calendar event updated:', appointment.googleCalendarEventId);
+        } catch (calendarError) {
+          console.error('Failed to update Google Calendar event:', calendarError.message);
+        }
+      }
+
       res.status(200).json({
         message: 'Appointment updated successfully',
         appointment
@@ -358,6 +397,16 @@ const { PrismaClient } = require('@prisma/client');
         return res.status(400).json({
           error: 'Cannot delete appointment with existing payments. Please delete payments first or cancel the appointment instead.'
         });
+      }
+
+      // Try to delete Google Calendar event first (if it exists)
+      if (existingAppointment.googleCalendarEventId) {
+        try {
+          await deleteCalendarEvent(req.user.id, existingAppointment.googleCalendarEventId);
+          console.log('Google Calendar event deleted:', existingAppointment.googleCalendarEventId);
+        } catch (calendarError) {
+          console.error('Failed to delete Google Calendar event:', calendarError.message);
+        }
       }
 
       // Delete appointment
