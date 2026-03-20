@@ -90,7 +90,7 @@ model Appointment {
   artistId          String?
   artist            User?             @relation("ArtistAppointments", fields: [artistId], references: [id])
   payments          Payment[]
-  // session           Session? // Uncomment for post-MVP session tracking
+  materialsUsed     MaterialUsage[]   // Track materials used per appointment
 
   @@index([date])
   @@index([clientId])
@@ -159,17 +159,36 @@ model Payment {
 // ============================================
 
 model Material {
-  id              String   @id @default(cuid())
-  name            String
-  category        String?
-  quantity        Int      // Current stock level (manually updated)
-  unit            String   @default("unidad")
-  restockThreshold Int     @default(25) // Alert when below this percentage
-  costPerUnit     Decimal?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String          @id @default(cuid())
+  name             String
+  category         String?
+  quantity         Int             // Current stock level
+  unit             String          @default("unidad")
+  restockThreshold Int             @default(25) // Alert when below this percentage (%)
+  costPerUnit      Decimal?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Relations
+  usageHistory     MaterialUsage[] // Track usage per appointment
 
   @@index([quantity])
+}
+
+model MaterialUsage {
+  id            String      @id @default(cuid())
+  quantity      Int         // Amount used
+  costAtTime    Decimal?    // Cost per unit at time of use (for historical accuracy)
+  createdAt     DateTime    @default(now())
+
+  // Relations
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  materialId    String
+  material      Material    @relation(fields: [materialId], references: [id])
+
+  @@index([appointmentId])
+  @@index([materialId])
 }
 
 model BlockedDate {

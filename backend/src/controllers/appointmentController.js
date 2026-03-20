@@ -119,6 +119,14 @@ const prisma = new PrismaClient();
                 }
               }
             }
+          },
+          materialsUsed: {
+            include: {
+              material: true
+            },
+            orderBy: {
+              createdAt: 'asc'
+            }
           }
         }
       });
@@ -362,6 +370,43 @@ const prisma = new PrismaClient();
         }
       }
 
+      // If status changed TO COMPLETED, deduct materials from inventory
+      if (status === 'COMPLETED' && existingAppointment.status !== 'COMPLETED') {
+        console.log('🟢 Appointment marked COMPLETED - deducting materials from inventory');
+
+        // Fetch materials used for this appointment
+        const materialsUsed = await prisma.materialUsage.findMany({
+          where: { appointmentId: id },
+          include: { material: true }
+        });
+
+        // Deduct each material from inventory
+        for (const usage of materialsUsed) {
+          const currentMaterial = await prisma.material.findUnique({
+            where: { id: usage.materialId }
+          });
+
+          if (currentMaterial) {
+            const newQuantity = currentMaterial.quantity - usage.quantity;
+
+            // Prevent negative inventory (just in case)
+            if (newQuantity < 0) {
+              console.warn(`⚠️ Warning: ${currentMaterial.name} would go negative. Setting to 0.`);
+              await prisma.material.update({
+                where: { id: usage.materialId },
+                data: { quantity: 0 }
+              });
+            } else {
+              await prisma.material.update({
+                where: { id: usage.materialId },
+                data: { quantity: newQuantity }
+              });
+              console.log(`✅ Deducted ${usage.quantity} ${currentMaterial.unit} of ${currentMaterial.name}`);
+            }
+          }
+        }
+      }
+
       res.status(200).json({
         message: 'Appointment updated successfully',
         appointment
@@ -423,10 +468,147 @@ const prisma = new PrismaClient();
     }
   };
 
+  /**
+   * POST /api/appointments/:id/materials
+   * Add materials used to an appointment
+   * Body: { materials: [{ materialId, quantity }] }
+   */
+  const addMaterialsToAppointment = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { materials } = req.body;
+
+      if (!materials || !Array.isArray(materials) || materials.length === 0) {
+        return res.status(400).json({ error: 'Materials array is required' });
+      }
+
+      // Check if appointment exists
+      const appointment = await prisma.appointment.findUnique({
+        where: { id }
+      });
+
+      if (!appointment) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+
+      // Validate all materials exist and have enough stock
+      for (const item of materials) {
+        const material = await prisma.material.findUnique({
+          where: { id: item.materialId }
+        });
+
+        if (!material) {
+          return res.status(404).json({
+            error: `Material with ID ${item.materialId} not found`
+          });
+        }
+
+        // Check if there's enough stock (only if appointment is COMPLETED)
+        if (appointment.status === 'COMPLETED' && material.quantity < item.quantity) {
+          return res.status(400).json({
+            error: `Not enough stock for ${material.name}. Available: ${material.quantity}, Requested:
+  ${item.quantity}`
+          });
+        }
+      }
+
+      // Create material usage records
+      const createdUsages = [];
+      for (const item of materials) {
+        const material = await prisma.material.findUnique({
+          where: { id: item.materialId }
+        });
+
+        const usage = await prisma.materialUsage.create({
+          data: {
+            appointmentId: id,
+            materialId: item.materialId,
+            quantity: parseInt(item.quantity),
+            costAtTime: material.costPerUnit
+          },
+          include: {
+            material: true
+          }
+        });
+
+        createdUsages.push(usage);
+
+        // Deduct from inventory if appointment is COMPLETED
+        if (appointment.status === 'COMPLETED') {
+          await prisma.material.update({
+            where: { id: item.materialId },
+            data: {
+              quantity: material.quantity - parseInt(item.quantity)
+            }
+          });
+        }
+      }
+
+      res.status(201).json({
+        message: 'Materials added successfully',
+        materialsUsed: createdUsages
+      });
+    } catch (error) {
+      console.error('Error adding materials:', error);
+      res.status(500).json({ error: 'Failed to add materials' });
+    }
+  };
+
+  /**
+   * DELETE /api/appointments/:appointmentId/materials/:usageId
+   * Remove a material usage record
+   */
+  const removeMaterialFromAppointment = async (req, res) => {
+    try {
+      const { appointmentId, usageId } = req.params;
+
+      // Find the usage record
+      const usage = await prisma.materialUsage.findUnique({
+        where: { id: usageId },
+        include: {
+          appointment: true,
+          material: true
+        }
+      });
+
+      if (!usage) {
+        return res.status(404).json({ error: 'Material usage not found' });
+      }
+
+      if (usage.appointmentId !== appointmentId) {
+        return res.status(400).json({ error: 'Material usage does not belong to this appointment' });
+      }
+
+      // If appointment was COMPLETED, restore the inventory
+      if (usage.appointment.status === 'COMPLETED') {
+        await prisma.material.update({
+          where: { id: usage.materialId },
+          data: {
+            quantity: usage.material.quantity + usage.quantity
+          }
+        });
+      }
+
+      // Delete the usage record
+      await prisma.materialUsage.delete({
+        where: { id: usageId }
+      });
+
+      res.status(200).json({
+        message: 'Material removed successfully'
+      });
+    } catch (error) {
+      console.error('Error removing material:', error);
+      res.status(500).json({ error: 'Failed to remove material' });
+    }
+  };
+
   module.exports = {
     getAllAppointments,
     getAppointmentById,
     createAppointment,
     updateAppointment,
-    deleteAppointment
+    deleteAppointment,
+    addMaterialsToAppointment,
+    removeMaterialFromAppointment
   };

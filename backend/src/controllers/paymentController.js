@@ -195,10 +195,32 @@ const { PrismaClient } = require('@prisma/client');
         return res.status(404).json({ error: 'Payment not found' });
       }
 
+      const appointmentId = existingPayment.appointmentId;
+      const wasDeposit = existingPayment.isDeposit;
+
       // Delete payment
       await prisma.payment.delete({
         where: { id }
       });
+
+      // If deleted payment was a deposit, check if any other deposits exist
+      if (wasDeposit) {
+        const remainingDeposits = await prisma.payment.findMany({
+          where: {
+            appointmentId: appointmentId,
+            isDeposit: true
+          }
+        });
+
+        // If no deposit payments left, set depositReceived back to false
+        if (remainingDeposits.length === 0) {
+          await prisma.appointment.update({
+            where: { id: appointmentId },
+            data: { depositReceived: false }
+          });
+          console.log(`✅ No deposit payments left - set depositReceived to false for appointment ${appointmentId}`);
+        }
+      }
 
       res.status(200).json({
         message: 'Payment deleted successfully'

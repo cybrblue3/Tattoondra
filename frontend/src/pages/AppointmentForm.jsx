@@ -33,8 +33,6 @@ import { useState, useEffect } from 'react';
       duration: 60,
       description: '',
       status: 'CONFIRMED',
-      depositAmount: 200,
-      depositReceived: false,
       totalPrice: '',
       notes: '',
       consentSigned: false
@@ -84,8 +82,6 @@ import { useState, useEffect } from 'react';
               duration: appointment.duration,
               description: appointment.description || '',
               status: appointment.status,
-              depositAmount: parseFloat(appointment.depositAmount),
-              depositReceived: appointment.depositReceived,
               totalPrice: appointment.totalPrice ? parseFloat(appointment.totalPrice) : '',
               notes: appointment.notes || '',
               consentSigned: appointment.consentSigned
@@ -279,20 +275,8 @@ import { useState, useEffect } from 'react';
                 </Grid>
               )}
 
-              {/* Deposit Amount */}
-              <Grid item xs={12} md={isEditMode ? 6 : 4}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Monto del Depósito"
-                  name="depositAmount"
-                  value={formData.depositAmount}
-                  onChange={handleChange}
-                />
-              </Grid>
-
               {/* Total Price */}
-              <Grid item xs={12} md={isEditMode ? 6 : 4}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
                   type="number"
@@ -303,22 +287,6 @@ import { useState, useEffect } from 'react';
                   placeholder="Opcional"
                 />
               </Grid>
-
-              {/* Deposit Received Checkbox */}
-              {isEditMode && (
-                <Grid item xs={12} md={6}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={formData.depositReceived}
-                        onChange={(e) => setFormData({...formData, depositReceived: e.target.checked})}
-                        name="depositReceived"
-                      />
-                    }
-                    label="Depósito recibido"
-                  />
-                </Grid>
-              )}
 
               {/* Consent Signed Checkbox */}
               {isEditMode && (

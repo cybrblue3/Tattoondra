@@ -99,6 +99,11 @@ import { useState, useEffect } from 'react';
       notes: ''
     });
     const [paymentErrors, setPaymentErrors] = useState({});
+    const [materials, setMaterials] = useState([]);
+    const [materialsUsed, setMaterialsUsed] = useState([]);
+    const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
+    const [selectedMaterial, setSelectedMaterial] = useState('');
+    const [materialQuantity, setMaterialQuantity] = useState('');
 
     // Fetch appointment
     const fetchAppointment = async () => {
@@ -106,7 +111,12 @@ import { useState, useEffect } from 'react';
         const response = await axios.get(`${API_URL}/api/appointments/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setAppointment(response.data.appointment);
+        const fetchedAppointment = response.data.appointment;
+        setAppointment(fetchedAppointment);
+
+        // Set materials used from appointment
+        setMaterialsUsed(fetchedAppointment.materialsUsed || []);
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching appointment:', error);
@@ -127,9 +137,82 @@ import { useState, useEffect } from 'react';
       }
     };
 
+    // Fetch available materials
+    const fetchMaterials = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/materials`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMaterials(response.data.materials);
+      } catch (error) {
+        console.error('Error fetching materials:', error);
+      }
+    };
+
+   // Add material to appointment
+  const handleAddMaterial = async () => {
+    console.log('🔵 handleAddMaterial called!');
+    console.log('Selected Material:', selectedMaterial);
+    console.log('Quantity:', materialQuantity);
+
+    if (!selectedMaterial || !materialQuantity) {
+      console.log('❌ Validation failed - missing data');
+      return;
+    }
+
+    try {
+      console.log('🟡 Sending request to:', `${API_URL}/api/appointments/${id}/materials`);
+      console.log('🟡 Request body:', {
+        materials: [{ materialId: selectedMaterial, quantity: parseInt(materialQuantity) }]
+      });
+
+      const response = await axios.post(
+        `${API_URL}/api/appointments/${id}/materials`,
+        {
+          materials: [{ materialId: selectedMaterial, quantity: parseInt(materialQuantity) }]
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log('✅ Response:', response.data);
+
+      // Refresh appointment data
+      fetchAppointment();
+      setMaterialDialogOpen(false);
+      setSelectedMaterial('');
+      setMaterialQuantity('');
+    } catch (error) {
+      console.error('❌ Error adding material:', error);
+      console.error('❌ Error response:', error.response?.data);
+      alert(error.response?.data?.error || 'Error al agregar material');
+    }
+  };
+
+  // Remove material from appointment
+  const handleRemoveMaterial = async (usageId) => {
+    try {
+      await axios.delete(
+        `${API_URL}/api/appointments/${id}/materials/${usageId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchAppointment();
+    } catch (error) {
+      console.error('Error removing material:', error);
+      alert(error.response?.data?.error || 'Error al eliminar material');
+    }
+  };
+
+  // Calculate total material cost
+  const calculateMaterialCost = () => {
+    return materialsUsed.reduce((total, usage) => {
+      return total + (parseFloat(usage.costAtTime || 0) * usage.quantity);
+    }, 0);
+  };
+
     useEffect(() => {
       fetchAppointment();
       fetchPayments();
+      fetchMaterials();
     }, [id, token]);
 
     const handleDelete = async () => {
@@ -514,6 +597,109 @@ import { useState, useEffect } from 'react';
             </TableContainer>
           )}
         </Paper>
+
+        {/* Materials Used Section */}
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">Materiales Utilizados</Typography>
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => setMaterialDialogOpen(true)}
+              >
+                Agregar Material
+              </Button>
+            </Box>
+
+            {materialsUsed.length === 0 ? (
+              <Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                No se han registrado materiales para esta cita
+              </Typography>
+            ) : (
+              <>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell><strong>Material</strong></TableCell>
+                        <TableCell><strong>Categoría</strong></TableCell>
+                        <TableCell align="center"><strong>Cantidad Utilizada</strong></TableCell>
+                        <TableCell align="center"><strong>Acciones</strong></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {materialsUsed.map((usage) => (
+                        <TableRow key={usage.id}>
+                          <TableCell>{usage.material.name}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={usage.material.category || 'Sin categoría'}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            {usage.quantity} {usage.material.unit}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => handleRemoveMaterial(usage.id)}
+                            >
+                              Eliminar
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
+            )}
+          </Paper>
+
+          {/* Add Material Dialog */}
+          <Dialog open={materialDialogOpen} onClose={() => setMaterialDialogOpen(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>Agregar Material Utilizado</DialogTitle>
+            <DialogContent>
+              <Box sx={{ pt: 2 }}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Material"
+                  value={selectedMaterial}
+                  onChange={(e) => setSelectedMaterial(e.target.value)}
+                  sx={{ mb: 2 }}
+                >
+                  {materials.map((material) => (
+                    <MenuItem key={material.id} value={material.id}>
+                      {material.name} ({material.quantity} {material.unit} disponibles)
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Cantidad Utilizada"
+                  value={materialQuantity}
+                  onChange={(e) => setMaterialQuantity(e.target.value)}
+                  inputProps={{ min: 0, step: 1 }}
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setMaterialDialogOpen(false)}>Cancelar</Button>
+              <Button
+                onClick={handleAddMaterial}
+                variant="contained"
+                disabled={!selectedMaterial || !materialQuantity}
+              >
+                Agregar
+              </Button>
+            </DialogActions>
+          </Dialog>
 
         {/* Delete Appointment Dialog */}
         <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>

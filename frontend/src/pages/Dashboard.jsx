@@ -189,7 +189,8 @@ import { useState, useEffect } from 'react';
 
             {/* Inventory Card */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+              onClick={() => navigate('/dashboard/inventory')}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Inventory sx={{ fontSize: 50, color: '#764ba2', mb: 2 }} />
                   <Typography variant="h3" fontWeight="bold" color="primary">

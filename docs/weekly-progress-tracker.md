@@ -663,16 +663,277 @@ Use this document to track your progress each week. This will be valuable for yo
 
 ---
 
-## WEEK 6: Finance Reports + Polish
+## WEEK 6: Inventory Management & Material Usage Tracking
+**Dates:** March 19-20, 2026
+**Hours Logged:** ______
+
+### Goals
+**Inventory Management System:**
+- [X] Material/tool database with CRUD operations (needles, ink, gloves, etc.)
+- [X] Add/edit/delete materials functionality
+- [X] Manual stock adjustments (add/remove inventory)
+- [X] Stock level tracking with low stock alerts (visual indicators)
+- [X] Inventory dashboard with status colors (red/yellow/green)
+- [X] Connect "Inventario" dashboard card to inventory page
+- [X] **BONUS:** Complete per-appointment material usage tracking
+- [X] **BONUS:** Automatic inventory deduction when appointments marked COMPLETED
+
+**Finance & Reports:**
+- [ ] Revenue summary dashboard (total, by payment method)
+- [ ] Payment method breakdown visualization
+- [ ] Optional: Export basic reports (CSV)
+
+**Polish & UX:**
+- [ ] Mobile responsiveness testing (phone/tablet)
+- [X] Deposit payment system cleanup (bug fix)
+- [ ] UI/UX improvements and bug fixes
+- [ ] Performance optimization pass
+
+**Note:** User decided to implement full per-appointment material tracking instead of simplified manual approach for better data accuracy
+
+### What We Accomplished
+- **Complete Material/Inventory Management System - Full Stack** (March 19-20)
+  - **Database Schema Updates** (backend/prisma/schema.prisma)
+    - Added `MaterialUsage` model with many-to-many relationship between Appointments and Materials
+    - Fields: appointmentId, materialId, quantity, costAtTime (snapshot pricing)
+    - Created migration: `20260319070738_add_material_usage_tracking`
+    - Material model already existed from previous work
+
+  - **Backend Material API** (backend/src/controllers/materialController.js)
+    - Created `getAllMaterials()` with full material list retrieval
+    - Built `getMaterialById()` for single material details
+    - Implemented `createMaterial()` with validation (name, quantity, unit, category, costPerUnit, restockThreshold)
+    - Built `updateMaterial()` for editing material details
+    - Implemented `deleteMaterial()` with usage history protection
+    - **Special:** `adjustStock()` endpoint for manual inventory adjustments
+      - Accepts positive (restock) or negative (manual deduction) quantities
+      - Validates against negative stock (prevents going below 0)
+      - Tracks adjustment reason (Compra, Ajuste manual, Producto dañado, etc.)
+      - Returns old quantity, new quantity, and adjustment amount
+    - All routes protected with JWT authentication
+
+  - **Backend Material Usage API** (backend/src/controllers/appointmentController.js)
+    - Built `addMaterialsToAppointment()` endpoint
+      - Accepts array of materials with materialId and quantity
+      - Validates materials exist and have sufficient stock
+      - Creates MaterialUsage records linked to appointment
+      - Stores costAtTime for historical pricing accuracy
+      - **Deducts inventory immediately if appointment status is COMPLETED**
+    - Built `removeMaterialFromAppointment()` endpoint
+      - Deletes MaterialUsage record
+      - Does NOT restore inventory (prevents double-counting)
+    - Modified `getAppointmentById()` to include materialsUsed relation
+      - Includes nested material data for display
+      - Orders by createdAt ascending (chronological history)
+    - **Critical Enhancement:** Auto-deduct inventory on status change to COMPLETED
+      - Added logic in `updateAppointment()` to detect status change
+      - When status changes from non-COMPLETED → COMPLETED
+      - Fetches all MaterialUsage records for appointment
+      - Deducts each material quantity from inventory
+      - Prevents negative stock (sets to 0 if would go negative)
+      - Console logs for debugging and audit trail
+
+  - **Frontend Inventory Management** (frontend/src/pages/Inventory.jsx)
+    - Material list table with sortable columns
+    - **Color-coded stock status indicators:**
+      - Red (Agotado): quantity = 0
+      - Yellow (Bajo): quantity ≤ restockThreshold
+      - Green (Disponible): quantity > restockThreshold
+    - Background color coding for visual prominence
+    - Stock adjustment button opens dialog
+    - Manual adjustment dialog with quantity input and reason dropdown
+    - Reasons: Compra de suministros, Ajuste manual, Producto dañado, Inventario inicial, Otro
+    - Shows current stock before adjustment
+    - Accepts +/- values (e.g., 50 or -10)
+    - Delete button with confirmation
+    - Navigate to Add/Edit forms
+    - Real-time stock updates after adjustments
+
+  - **Frontend Material Form** (frontend/src/pages/MaterialForm.jsx)
+    - Dual-mode form (create/edit with isEditMode detection)
+    - Fields: name, category, quantity, unit, restockThreshold, costPerUnit
+    - Default values: unit="unidad", restockThreshold=25
+    - Category dropdown with common options (Tintas, Agujas, Guantes, Limpieza, Otro)
+    - Unit dropdown (unidad, ml, gr, pieza, paquete, caja)
+    - Form validation (name required, quantity ≥ 0)
+    - Pre-fills data in edit mode
+    - Different submit logic (POST vs PUT)
+
+  - **Frontend Material Usage in Appointments** (frontend/src/pages/AppointmentDetail.jsx)
+    - Added "Materiales Utilizados" section to appointment detail page
+    - Table showing: Material name, Category, Quantity used
+    - "Agregar Material" button opens dialog
+    - Material selection dropdown (shows available stock)
+    - Quantity input with validation
+    - Delete material usage button (removes from appointment)
+    - Simplified design (removed cost tracking per user feedback)
+    - Real-time updates after adding/removing materials
+    - Materials can only be added in EDIT mode (not during creation)
+
+  - **Route Integration** (frontend/src/App.jsx)
+    - Added `/dashboard/inventory` route
+    - Added `/dashboard/inventory/new` route
+    - Added `/dashboard/inventory/:id/edit` route
+    - Connected Inventario dashboard card with onClick navigation
+
+- **Deposit Payment System Cleanup** (March 20, Bug Fix)
+  - **Problem Identified:** Duplicate deposit tracking systems causing double-counting
+    - Method 1: depositReceived checkbox + depositAmount field (manual in edit form)
+    - Method 2: "Registrar Pago" dialog with isDeposit checkbox (creates Payment record)
+    - If both used, deposit counted twice in balance calculation
+
+  - **Frontend Cleanup** (AppointmentForm.jsx)
+    - Removed `depositAmount` field from form state and UI
+    - Removed `depositReceived` checkbox from edit form
+    - Simplified form to only show totalPrice field
+    - Users now ONLY use "Registrar Pago" for deposit tracking
+
+  - **Frontend Balance Calculation Fix** (AppointmentDetail.jsx)
+    - Reverted yesterday's workaround that manually added deposit to balance
+    - Balance now calculated from Payment records only: `totalPrice - totalPaid`
+    - Cleaner calculation with single source of truth
+
+  - **Backend Auto-Update Logic** (paymentController.js)
+    - `createPayment()` already had logic: if isDeposit=true, set appointment.depositReceived=true
+    - Enhanced `deletePayment()` with reverse logic:
+      - When deleting a deposit payment, check for remaining deposits
+      - If no other deposit payments exist, set depositReceived=false
+      - Keeps deposit status automatically synchronized
+
+  - **Result:** Single, clean deposit workflow
+    - Create appointment → Depósito shows "Pendiente"
+    - Registrar Pago → Check "Este es el depósito inicial" → Amount
+    - Backend automatically sets depositReceived=true
+    - Deposit appears in payment history
+    - Balance includes deposit from Payment record
+    - Delete deposit → Status reverts to "Pendiente" if no other deposits
+    - No duplication, fully automated
+
+### Challenges Faced
+- **Architectural Decision:** Manual tracking vs per-appointment tracking vs hybrid approach
+  - User questioned how to efficiently track material usage per session
+  - Presented 3 options with trade-offs (simplicity vs data accuracy)
+  - User chose comprehensive per-appointment tracking ("go all in")
+- **Cost Tracking Complexity:** Initially built profit calculations (cost per unit × quantity used)
+  - User realized dividing large purchases (1L ink) into per-ml costs was impractical
+  - Real-world usage: bulk purchases, hard to calculate exact per-session costs
+- **Inventory Deduction Timing:** When to deduct materials from inventory?
+  - Option 1: Deduct when added to appointment (immediate)
+  - Option 2: Deduct when appointment marked COMPLETED (delayed but accurate)
+  - Needed to handle both scenarios: adding to COMPLETED appointment AND changing status to COMPLETED
+- **Deposit Payment Duplication Bug:** Two competing systems for tracking deposits
+  - Manual checkbox wasn't creating Payment records
+  - "Registrar Pago" created Payment records
+  - Using both caused double-counting in balance calculation
+- **Data Model Complexity:** MaterialUsage as junction table with additional fields
+  - Needed to understand many-to-many relationships
+  - Why store costAtTime (historical pricing snapshot)
+  - How to query nested relationships with Prisma include
+
+### Solutions Found
+- **Material Tracking Architecture:** Chose per-appointment tracking with MaterialUsage junction table
+  - Provides complete audit trail of material usage history
+  - Enables future analytics (which materials used most, cost tracking if needed later)
+  - User willing to accept manual work for better data accuracy
+- **Simplified Material Tracking:** Removed cost calculations based on user feedback
+  - Eliminated costPerUnit column from materials display
+  - Removed profit calculations (Precio Total - Costo Materiales = Ganancia)
+  - Kept costAtTime in database for future use, but hidden from UI
+  - Result: Clean, simple "quantity used" tracking
+- **Dual Deduction Logic:** Implemented inventory deduction in two places
+  - `addMaterialsToAppointment()`: Deduct if appointment.status is COMPLETED
+  - `updateAppointment()`: Deduct all materials if status changes TO COMPLETED
+  - Covers both workflows: adding materials to finished appointment, marking appointment as finished
+- **Deposit System Cleanup:** Removed manual checkbox, kept only "Registrar Pago"
+  - Single source of truth for all payments (deposits and regular payments)
+  - Auto-update appointment.depositReceived when deposit payment created/deleted
+  - Cleaner UI, less user confusion, no duplication
+- **UX Flow Optimization:** Materials added in EDIT mode, not CREATE
+  - User suggested this workflow improvement
+  - Better flow: Create appointment → Session happens → Edit → Add materials → Mark complete
+  - Prevents premature material tracking before session occurs
+
+### Learnings This Week
+- **Many-to-Many Relationships with Metadata:** Junction tables can store extra fields
+  - MaterialUsage stores quantity and costAtTime (not just foreign keys)
+  - Enables historical tracking and analytics
+- **Prisma Include Patterns:** Nested data fetching with include and orderBy
+  - `include: { materialsUsed: { include: { material: true } } }`
+  - Fetches appointments with materials AND each material's full details
+- **Snapshot Pricing Pattern:** Store prices at time of transaction
+  - costAtTime preserves material cost when used (historical accuracy)
+  - Current material.costPerUnit can change without affecting past records
+- **Inventory Management Best Practices:** Color-coded stock indicators
+  - Red/Yellow/Green system universally understood
+  - Thresholds (restockThreshold) trigger visual warnings
+  - Background colors more prominent than icon-only indicators
+- **Stock Adjustment Patterns:** +/- quantity model with reason tracking
+  - Single endpoint handles both add and remove (positive vs negative values)
+  - Reason dropdown provides audit trail context
+  - Validation prevents negative inventory
+- **UX for Non-Technical Users:** Simplified UI beats feature-rich complexity
+  - User realized cost tracking was too complicated for daily use
+  - Chose simple quantity tracking over detailed profit calculations
+  - "Less is more" philosophy for tattoo artist workflow
+- **User-Driven Design Decisions:** User challenged initial implementation
+  - Suggested materials should be added in edit mode, not create mode
+  - Caught deposit duplication bug through real-world testing
+  - Proved critical thinking and system understanding
+- **Automatic Status Synchronization:** Backend logic can auto-update related fields
+  - Creating deposit payment → auto-set depositReceived=true
+  - Deleting last deposit → auto-set depositReceived=false
+  - Marking appointment complete → auto-deduct all materials
+  - Reduces manual work and prevents inconsistencies
+- **Edge Case Prevention:** Negative stock protection
+  - Check quantity before deduction
+  - Set to 0 instead of negative if would go below
+  - Console warnings for audit trail
+- **Conditional Deduction Logic:** Status change detection pattern
+  - `if (status === 'COMPLETED' && existingAppointment.status !== 'COMPLETED')`
+  - Only triggers on transition TO completed (not if already completed)
+  - Prevents duplicate deductions on multiple edits
+
+### Next Week Priorities
+- [X] ~~Material/Inventory Management~~ (COMPLETED!)
+- Implement financial tracking in Dashboard Pagos card (total revenue, monthly revenue, pending balance)
+- Create Finance Reports page with revenue breakdown and payment method charts
+- Mobile responsiveness testing (phone/tablet compatibility)
+- End-to-end system testing (complete workflow verification)
+- Production deployment preparation
+
+---
+
+## WEEK 7: Production Deployment, Testing & Thesis Documentation
 **Dates:** __________ to __________
 **Hours Logged:** ______
 
 ### Goals
-- [ ] Monthly revenue report
-- [ ] Payment method breakdown
-- [ ] Export reports (CSV/PDF)
-- [ ] UI/UX improvements
-- [ ] Mobile optimization pass
+**Production Deployment:**
+- [ ] Deploy backend updates to Railway (with Google Calendar integration)
+- [ ] Deploy frontend updates to Vercel
+- [ ] Test complete production flow end-to-end
+- [ ] Verify Google Calendar OAuth works in production
+- [ ] Environment variables setup for production
+
+**Quality Assurance:**
+- [ ] Full system testing (all features working together)
+- [ ] Bug fixes and edge case handling
+- [ ] Performance optimization
+- [ ] Security audit (environment variables, token storage, etc.)
+
+**Thesis Documentation:**
+- [ ] Compile all weekly progress notes
+- [ ] Organize screenshots by feature/week
+- [ ] Write technical architecture documentation
+- [ ] Document key design decisions and trade-offs
+- [ ] Create user guide for Alejandra (how to use the system)
+- [ ] Prepare demo script for thesis presentation
+- [ ] Final code documentation and comments
+
+**Handoff:**
+- [ ] Handoff meeting with Alejandra
+- [ ] Training on how to use all features
+- [ ] Provide credentials and access information
 
 ### What We Accomplished
 -
@@ -690,49 +951,9 @@ Use this document to track your progress each week. This will be valuable for yo
 -
 -
 
-### Next Week Priorities
--
--
-
 ---
 
-## WEEK 7: Inventory Management (Simple Approach)
-**Dates:** __________ to __________
-**Hours Logged:** ______
-
-### Goals
-- [ ] Material/tool database (CRUD operations)
-- [ ] Add/edit/delete materials
-- [ ] Manual "Add Stock" functionality (when purchasing supplies)
-- [ ] Manual "Remove Stock" functionality (adjustments)
-- [ ] Low stock alerts (<25%)
-- [ ] Inventory dashboard with status indicators (red/yellow/green)
-
-**Note:** Using simplified approach - no per-session tracking for MVP
-
-### What We Accomplished
--
--
-
-### Challenges Faced
--
--
-
-### Solutions Found
--
--
-
-### Learnings This Week
--
--
-
-### Next Week Priorities
--
--
-
----
-
-## WEEK 8: Testing, Deployment, Documentation
+## WEEK 8: Buffer Week & Final Polish
 **Dates:** __________ to __________
 **Hours Logged:** ______
 

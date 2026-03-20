@@ -10,6 +10,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
   import AppointmentDetail from './pages/AppointmentDetail';
   import AppointmentForm from './pages/AppointmentForm';
   import Settings from './pages/Settings';
+  import Inventory from './pages/Inventory';
+  import MaterialForm from './pages/MaterialForm';
 
   function App() {
     return (
@@ -114,6 +116,36 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - Inventory */}
+            <Route
+              path="/dashboard/inventory"
+              element={
+                <ProtectedRoute>
+                  <Inventory />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - New Material Form */}
+            <Route
+              path="/dashboard/inventory/new"
+              element={
+                <ProtectedRoute>
+                  <MaterialForm />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - Edit Material Form */}
+            <Route
+              path="/dashboard/inventory/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <MaterialForm />
                 </ProtectedRoute>
               }
             />

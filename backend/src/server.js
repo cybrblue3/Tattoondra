@@ -25,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
   const appointmentRoutes = require('./routes/appointmentRoutes');
   const paymentRoutes = require('./routes/paymentRoutes');
   const googleAuthRoutes = require('./routes/googleAuthRoutes');
+  const materialRoutes = require('./routes/materialRoutes');
 
 // Health check
 app.get('/health', (req, res) => {
@@ -46,14 +47,12 @@ app.get('/health', (req, res) => {
 
 // Payment routes
   app.use('/api/payments', paymentRoutes);
-  
+
 // Google Auth routes
   app.use('/api/auth', googleAuthRoutes);
 
-  // API routes will be added here
-// app.use('/api/appointments', require('./routes/appointments'));
-// app.use('/api/payments', require('./routes/payments'));
-// app.use('/api/materials', require('./routes/materials'));
+// Material/Inventory routes
+  app.use('/api/materials', materialRoutes);
 
 // 404 handler
 app.use((req, res) => {

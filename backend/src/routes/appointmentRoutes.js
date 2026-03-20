@@ -6,7 +6,9 @@
     getAppointmentById,
     createAppointment,
     updateAppointment,
-    deleteAppointment
+    deleteAppointment,
+    addMaterialsToAppointment,
+    removeMaterialFromAppointment
   } = require('../controllers/appointmentController');
 
   // Protect all appointment routes with authentication
@@ -26,5 +28,11 @@
 
   // DELETE /api/appointments/:id - Delete appointment
   router.delete('/:id', deleteAppointment);
+
+  // POST /api/appointments/:id/materials - Add materials to appointment
+  router.post('/:id/materials', addMaterialsToAppointment);
+
+  // DELETE /api/appointments/:appointmentId/materials/:usageId - Remove material from appointment
+  router.delete('/:appointmentId/materials/:usageId', removeMaterialFromAppointment);
 
   module.exports = router;
