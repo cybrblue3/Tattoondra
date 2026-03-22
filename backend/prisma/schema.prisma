@@ -45,14 +45,14 @@ enum PaymentStatus {
 // ============================================
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  password      String
-  name          String
-  phone         String?
-  role          UserRole @default(CLIENT)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  role      UserRole @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Google Calendar OAuth tokens
   googleAccessToken  String? // Short-lived token for API calls
@@ -67,30 +67,30 @@ model User {
 }
 
 model Appointment {
-  id                String            @id @default(cuid())
-  date              DateTime
-  duration          Int               @default(60) // minutes
-  description       String?
-  status            AppointmentStatus @default(PENDING_CONFIRMATION)
-  depositAmount     Decimal           @default(200.00)
-  depositReceived   Boolean           @default(false)
-  totalPrice        Decimal?
-  consentSigned     Boolean           @default(false)
-  consentSignedAt   DateTime?
-  notes             String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id              String            @id @default(cuid())
+  date            DateTime
+  duration        Int               @default(60) // minutes
+  description     String?
+  status          AppointmentStatus @default(PENDING_CONFIRMATION)
+  depositAmount   Decimal           @default(200.00)
+  depositReceived Boolean           @default(false)
+  totalPrice      Decimal?
+  consentSigned   Boolean           @default(false)
+  consentSignedAt DateTime?
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   // Google Calendar Integration
   googleCalendarEventId String? // Store Google Calendar event ID for sync
 
   // Relations
-  clientId          String
-  client            User              @relation("ClientAppointments", fields: [clientId], references: [id])
-  artistId          String?
-  artist            User?             @relation("ArtistAppointments", fields: [artistId], references: [id])
-  payments          Payment[]
-  materialsUsed     MaterialUsage[]   // Track materials used per appointment
+  clientId      String
+  client        User            @relation("ClientAppointments", fields: [clientId], references: [id])
+  artistId      String?
+  artist        User?           @relation("ArtistAppointments", fields: [artistId], references: [id])
+  payments      Payment[]
+  materialsUsed MaterialUsage[] // Track materials used per appointment
 
   @@index([date])
   @@index([clientId])
@@ -98,20 +98,20 @@ model Appointment {
 }
 
 model Payment {
-  id              String        @id @default(cuid())
-  amount          Decimal
-  type            PaymentType
-  status          PaymentStatus @default(COMPLETED)
-  isDeposit       Boolean       @default(false)
-  notes           String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id        String        @id @default(cuid())
+  amount    Decimal
+  type      PaymentType
+  status    PaymentStatus @default(COMPLETED)
+  isDeposit Boolean       @default(false)
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   // Relations
-  appointmentId   String
-  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
-  receivedById    String
-  receivedBy      User          @relation(fields: [receivedById], references: [id])
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  receivedById  String
+  receivedBy    User        @relation(fields: [receivedById], references: [id])
 
   @@index([appointmentId])
   @@index([createdAt])
@@ -159,27 +159,27 @@ model Payment {
 // ============================================
 
 model Material {
-  id               String          @id @default(cuid())
+  id               String   @id @default(cuid())
   name             String
   category         String?
-  quantity         Int             // Current stock level
-  unit             String          @default("unidad")
-  restockThreshold Int             @default(25) // Alert when below this percentage (%)
+  quantity         Int // Current stock level
+  unit             String   @default("unidad")
+  restockThreshold Int      @default(25) // Alert when below this percentage (%)
   costPerUnit      Decimal?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relations
-  usageHistory     MaterialUsage[] // Track usage per appointment
+  usageHistory MaterialUsage[] // Track usage per appointment
 
   @@index([quantity])
 }
 
 model MaterialUsage {
-  id            String      @id @default(cuid())
-  quantity      Int         // Amount used
-  costAtTime    Decimal?    // Cost per unit at time of use (for historical accuracy)
-  createdAt     DateTime    @default(now())
+  id         String   @id @default(cuid())
+  quantity   Int // Amount used
+  costAtTime Decimal? // Cost per unit at time of use (for historical accuracy)
+  createdAt  DateTime @default(now())
 
   // Relations
   appointmentId String
@@ -192,10 +192,10 @@ model MaterialUsage {
 }
 
 model BlockedDate {
-  id              String   @id @default(cuid())
-  date            DateTime
-  reason          String?
-  createdAt       DateTime @default(now())
+  id        String   @id @default(cuid())
+  date      DateTime
+  reason    String?
+  createdAt DateTime @default(now())
 
   @@index([date])
 }

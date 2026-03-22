@@ -26,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
   const paymentRoutes = require('./routes/paymentRoutes');
   const googleAuthRoutes = require('./routes/googleAuthRoutes');
   const materialRoutes = require('./routes/materialRoutes');
+  const analyticsRoutes = require('./routes/analyticsRoutes');
 
 // Health check
 app.get('/health', (req, res) => {
@@ -53,6 +54,9 @@ app.get('/health', (req, res) => {
 
 // Material/Inventory routes
   app.use('/api/materials', materialRoutes);
+
+// Analytics routes
+  app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
 app.use((req, res) => {

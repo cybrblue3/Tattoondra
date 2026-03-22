@@ -12,6 +12,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
   import Settings from './pages/Settings';
   import Inventory from './pages/Inventory';
   import MaterialForm from './pages/MaterialForm';
+  import FinanceReports from './pages/FinanceReports';
 
   function App() {
     return (
@@ -148,6 +149,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
                   <MaterialForm />
                 </ProtectedRoute>
               }
+            />
+
+             <Route 
+             path="/dashboard/finance" element={
+             <ProtectedRoute>
+              <FinanceReports />
+              </ProtectedRoute>
+            } 
             />
 
             {/* Catch all - redirect to dashboard */}

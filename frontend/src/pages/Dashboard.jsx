@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';  
-import { useState, useEffect } from 'react';
+  import axios from 'axios';
+  import { useState, useEffect } from 'react';
   import { useNavigate } from 'react-router-dom';
   import {
     Box,
@@ -29,9 +29,10 @@ import { useState, useEffect } from 'react';
     const { token } = useAuth();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const [appointments, setAppointments] = useState([]);
-    const [clients, setClients] = useState([]);
-    const [totalRevenue, setTotalRevenue] = useState(0);
+    const [monthlyRevenue, setMonthlyRevenue] = useState(0);
+    const [pendingBalance, setPendingBalance] = useState(0);
+    const [upcomingAppointments, setUpcomingAppointments] = useState(0);
+    const [activeClients, setActiveClients] = useState(0);
     const [loading, setLoading] = useState(true);
 
     const handleLogout = () => {
@@ -39,54 +40,47 @@ import { useState, useEffect } from 'react';
       navigate('/login');
     };
 
-        // Fetch appointments
-      const fetchAppointments = async () => {
-        try {
-          const response = await axios.get(`${API_URL}/api/appointments`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setAppointments(response.data.appointments);
-        } catch (error) {
-          console.error('Error fetching appointments:', error);
-        }
+    // Calculate ALL dashboard metrics - SINGLE API CALL!
+  const calculateFinancials = async () => {
+    try {
+      // Single API call gets EVERYTHING at once
+      const response = await axios.get(`${API_URL}/api/analytics/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const {
+        monthlyRevenue,
+        pendingBalance,
+        upcomingAppointments,
+        activeClients
+      } = response.data.analytics;
+
+      setMonthlyRevenue(monthlyRevenue);
+      setPendingBalance(pendingBalance);
+      setUpcomingAppointments(upcomingAppointments);
+      setActiveClients(activeClients);
+
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    }
+  };
+
+    useEffect(() => {
+      const fetchData = async () => {
+        await calculateFinancials(); // Just ONE call now!
+        setLoading(false);
       };
 
-      // Fetch clients
-      const fetchClients = async () => {
-        try {
-          const response = await axios.get(`${API_URL}/api/clients`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setClients(response.data.clients);
-        } catch (error) {
-          console.error('Error fetching clients:', error);
-        }
-      };
+      fetchData();
+    }, []);
 
-      // Calculate revenue (we'll do this next)
-      const calculateRevenue = async () => {
-        // TODO: We'll add this logic in a moment
-        setTotalRevenue(0); // Placeholder for now
-      };
-
-      useEffect(() => {
-    const fetchData = async () => {
-      await fetchAppointments();
-      await fetchClients();
-      await calculateRevenue();
-      setLoading(false); // Done loading!
+    // Format currency
+    const formatCurrency = (amount) => {
+      return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+      }).format(amount);
     };
-
-        fetchData();
-      }, []); // Empty array = run once when component mounts
-
-       // Calculate upcoming appointments (future dates only)
-      const upcomingAppointments = appointments.filter(apt => {
-        return new Date(apt.date) > new Date(); // Date is in the future
-      }).length;
-
-      // Active clients count
-      const activeClientsCount = clients.length;
 
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
@@ -157,7 +151,7 @@ import { useState, useEffect } from 'react';
                 <CardContent sx={{ textAlign: 'center' }}>
                   <People sx={{ fontSize: 50, color: '#764ba2', mb: 2 }} />
                    <Typography variant="h3" fontWeight="bold" color="primary">
-                      {activeClientsCount}
+                      {activeClients}
                     </Typography>
                   <Typography variant="h6" gutterBottom>
                     Clientes Activos
@@ -169,19 +163,20 @@ import { useState, useEffect } from 'react';
               </Card>
             </Grid>
 
-            {/* Payments Card */}
+            {/* Payments Card - Clean Monthly + Pending */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+              onClick={() => navigate('/dashboard/finance')}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Payments sx={{ fontSize: 50, color: '#667eea', mb: 2 }} />
-                  <Typography variant="h3" fontWeight="bold" color="primary">
-                    $
+                  <Typography variant="h4" fontWeight="bold" color="success.main">
+                    {formatCurrency(monthlyRevenue)}
                   </Typography>
                   <Typography variant="h6" gutterBottom>
-                    Pagos
+                    Ingresos del Mes
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Seguimiento financiero
+                  <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                    Pendiente: {formatCurrency(pendingBalance)}
                   </Typography>
                 </CardContent>
               </Card>
@@ -206,16 +201,6 @@ import { useState, useEffect } from 'react';
               </Card>
             </Grid>
           </Grid>
-
-          {/* Coming Soon Section */}
-          <Paper sx={{ p: 3, mt: 3, textAlign: 'center' }}>
-            <Typography variant="h6" color="text.secondary">
-              🚧 Funcionalidades en construcción 🚧
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Próximamente: Gestión de citas, clientes, pagos e inventario
-            </Typography>
-          </Paper>
         </Container>
       </Box>
     );
