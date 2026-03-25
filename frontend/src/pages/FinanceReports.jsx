@@ -84,19 +84,22 @@ import { useState, useEffect } from 'react';
 
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {/* Back Button */}
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/dashboard')}
-          sx={{ mb: 2 }}
-        >
-          Dashboard
-        </Button>
-
         {/* Header */}
-        <Typography variant="h4" gutterBottom>
-          Reportes Financieros 💰
-        </Typography>
+        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+          <Button
+            onClick={() => navigate('/dashboard')}
+            sx={{ minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 28 }} />
+            <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+              Dashboard
+            </Typography>
+          </Button>
+          <Typography variant="h4" fontWeight="bold" component="h1" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+            Reportes Financieros
+          </Typography>
+          <Box sx={{ width: 80 }} /> {/* Spacer to balance */}
+        </Box>
 
         {/* Revenue Overview Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -110,7 +113,7 @@ import { useState, useEffect } from 'react';
                     Total General
                   </Typography>
                 </Box>
-                <Typography variant="h4" fontWeight="bold" color="primary">
+                <Typography variant="h5" fontWeight="bold" color="primary">
                   {formatCurrency(analytics.totalRevenue)}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -130,7 +133,7 @@ import { useState, useEffect } from 'react';
                     Este Mes
                   </Typography>
                 </Box>
-                <Typography variant="h4" fontWeight="bold" color="success.main">
+                <Typography variant="h5" fontWeight="bold" color="success.main">
                   {formatCurrency(analytics.monthlyRevenue)}
                 </Typography>
                 <Box display="flex" alignItems="center" mt={1}>
@@ -160,7 +163,7 @@ import { useState, useEffect } from 'react';
                     Esta Semana
                   </Typography>
                 </Box>
-                <Typography variant="h4" fontWeight="bold" color="warning.main">
+                <Typography variant="h5" fontWeight="bold" color="warning.main">
                   {formatCurrency(analytics.weeklyRevenue)}
                 </Typography>
                 <Box display="flex" alignItems="center" mt={1}>
@@ -190,7 +193,7 @@ import { useState, useEffect } from 'react';
                     Hoy
                   </Typography>
                 </Box>
-                <Typography variant="h4" fontWeight="bold" color="info.main">
+                <Typography variant="h5" fontWeight="bold" color="info.main">
                   {formatCurrency(analytics.dailyRevenue)}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">

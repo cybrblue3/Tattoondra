@@ -11,6 +11,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
   import AppointmentForm from './pages/AppointmentForm';
   import Settings from './pages/Settings';
   import Inventory from './pages/Inventory';
+  import MaterialDetail from './pages/MaterialDetail';
   import MaterialForm from './pages/MaterialForm';
   import FinanceReports from './pages/FinanceReports';
 
@@ -137,6 +138,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
               element={
                 <ProtectedRoute>
                   <MaterialForm />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route - Material Detail */}
+            <Route
+              path="/dashboard/inventory/:id"
+              element={
+                <ProtectedRoute>
+                  <MaterialDetail />
                 </ProtectedRoute>
               }
             />

@@ -1058,53 +1058,305 @@ Use this document to track your progress each week. This will be valuable for yo
 
 ---
 
-## WEEK 7: Production Deployment, Testing & Thesis Documentation
-**Dates:** __________ to __________
-**Hours Logged:** ______
+## WEEK 7: UI Consistency, Field Validation & International Phone Support
+**Dates:** March 25, 2026
+**Hours Logged:** ~4 hours
 
 ### Goals
-**Production Deployment:**
-- [ ] Deploy backend updates to Railway (with Google Calendar integration)
-- [ ] Deploy frontend updates to Vercel
-- [ ] Test complete production flow end-to-end
-- [ ] Verify Google Calendar OAuth works in production
-- [ ] Environment variables setup for production
+**UI Consistency & Polish:**
+- [X] Standardize all page titles (typography, fontWeight, semantic HTML)
+- [X] Update all back buttons to compact style (icon + label vertical)
+- [X] Fix Dashboard card layout on mobile (2x2 grid)
+- [X] Add error alerts and dividers to detail pages
+- [X] Complete Material inventory module
+
+**Appointment Form Enhancements:**
+- [X] Add searchable client dropdown with Autocomplete
+- [X] Add quick add client button with inline creation modal
+- [X] Implement real-time search/filter by name or email
+
+**Client Form Advanced Validation:**
+- [X] Add comprehensive field validation (name, email, phone)
+- [X] Implement phone auto-formatting (123 456 7890)
+- [X] Add international phone support with country codes
+- [X] Fix flag emoji rendering on Windows/Chrome
 
 **Quality Assurance:**
-- [ ] Full system testing (all features working together)
-- [ ] Bug fixes and edge case handling
-- [ ] Performance optimization
-- [ ] Security audit (environment variables, token storage, etc.)
-
-**Thesis Documentation:**
-- [ ] Compile all weekly progress notes
-- [ ] Organize screenshots by feature/week
-- [ ] Write technical architecture documentation
-- [ ] Document key design decisions and trade-offs
-- [ ] Create user guide for Alejandra (how to use the system)
-- [ ] Prepare demo script for thesis presentation
-- [ ] Final code documentation and comments
-
-**Handoff:**
-- [ ] Handoff meeting with Alejandra
-- [ ] Training on how to use all features
-- [ ] Provide credentials and access information
+- [ ] Mobile responsiveness testing (forms)
+- [ ] End-to-end system testing
+- [ ] Production deployment
 
 ### What We Accomplished
--
--
+
+**1. UI Consistency & Professional Polish** (March 25, Morning)
+  - **Fixed all page titles** to use consistent typography
+    - Changed all titles to `variant="h4"` with `fontWeight="bold"` and `component="h1"`
+    - Updated: Dashboard, Appointments, Clients, Settings, FinanceReports, AppointmentDetail, AppointmentForm, ClientDetail, ClientForm, MaterialForm, MaterialDetail, Inventory
+  - **Updated all back buttons** to compact vertical style (icon on top, label below)
+    - Fixed: AppointmentDetail, AppointmentForm, ClientDetail, ClientForm
+    - Consistent styling: `minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1`
+  - **Fixed Dashboard card layout** on mobile to 2x2 grid
+    - Changed from `xs={12}` (stacking) to `xs={6}` (2 columns)
+    - Added real materials count (fetches from API instead of "#" placeholder)
+    - Reduced spacing from 3 to 2, minHeight from 220 to 180
+    - Changed icon size from 50 to 40 for mobile optimization
+  - **Fixed JWT token** to include user name field
+    - Added `name: user.name` to JWT payload in authController.js (line 103)
+    - Dashboard now properly displays "¡Bienvenida, Alejandra! 👋"
+    - Requires logout/login to get new token with name field
+  - **Restructured AppointmentDetail** page to match other detail pages
+    - Added error state and error Alert component
+    - Added Divider after header section for visual separation
+    - Updated Paper padding from p: 3 → p: 4
+    - Updated Chip size to "small" for consistency
+    - Improved Grid spacing from 2 → 3
+    - Consolidated appointment info into main Paper component
+
+**2. Material Inventory Module Completed** (March 25, Morning)
+  - **Created MaterialDetail.jsx** - new detail page matching ClientDetail/AppointmentDetail pattern
+    - Shows: name, status chip (Agotado/Bajo/Disponible), category, unit, quantity, restock threshold
+    - Edit/Delete buttons with mobile-responsive flexDirection
+    - Color-coded status chips (error/warning/success based on stock level)
+    - Custom delete confirmation dialog with backdrop
+  - **Updated Inventory.jsx** - list page UX improvements
+    - Made table rows clickable (onClick navigates to detail page)
+    - Removed Edit button from actions column (kept Adjust and Delete)
+    - Rows have hover effect with cursor: pointer
+    - Color-coded background colors based on stock status
+  - **Updated MaterialForm.jsx** - navigation fixes
+    - Edit mode now returns to detail page (not inventory list)
+    - Uses same pattern as AppointmentForm and ClientForm
+    - Cancel button also returns to correct destination
+  - **Updated App.jsx** - added MaterialDetail route
+    - Added route: `/dashboard/inventory/:id` for MaterialDetail
+    - Imported MaterialDetail component
+    - Route positioned correctly in route order (after /new, before /:id/edit)
+
+**3. Appointment Form - Searchable Client Field** (March 25, Afternoon)
+  - **Replaced Select with Autocomplete** for client selection
+    - Added real-time search/filter by client name or email
+    - Shows helpful placeholder: "Escribe para buscar..."
+    - Helper text: "Busca por nombre o email"
+    - No options text: "No se encontraron clientes"
+    - Preserves all existing functionality (disabled in edit mode, validation, etc.)
+  - **Quick Add Client Button** with PersonAdd icon
+    - Dashed border IconButton next to client field
+    - Tooltip: "Agregar nuevo cliente"
+    - Only shows when NOT in edit mode (can't change client after creation)
+    - Opens modal dialog for inline client creation
+  - **Quick Add Client Modal** with complete form
+    - Fields: Name (required), Email (required), Phone with country code (optional)
+    - Same validation as ClientForm (name letters only, email format, phone 10 digits)
+    - Same phone auto-formatting and country code dropdown with flags
+    - Auto-selects newly created client in appointment form
+    - Shows success message "Cliente agregado exitosamente" for 1.5 seconds
+    - Auto-closes after success
+    - Error handling with alert display
+  - **UX Improvements:**
+    - Fast client search - no more scrolling through long lists
+    - Create clients on-the-fly without leaving appointment form
+    - Auto-selection after creation prevents manual searching
+    - Fully responsive modal and form fields
+
+**4. Client Form - Advanced Field Validation** (March 25, Afternoon)
+  - **Name Validation:**
+    - Only letters, spaces, hyphens, apostrophes, and Spanish accents (á, é, í, ó, ú, ñ, ü)
+    - Minimum 2 characters
+    - Regex: `/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$/`
+    - Error message: "El nombre solo puede contener letras, espacios y guiones"
+  - **Email Validation:**
+    - Proper format with @ and domain
+    - Regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+    - Auto-converts to lowercase on submit
+    - Error message: "Email inválido (ejemplo: nombre@dominio.com)"
+  - **Phone Validation:**
+    - Exactly 10 digits (no more, no less)
+    - Numbers only
+    - **Auto-formats as user types:** "123 456 7890"
+    - Format function: removes non-digits, limits to 10, adds spaces
+    - Error message: "El teléfono debe tener exactamente 10 dígitos"
+    - Optional field - only validates if provided
+  - **Special handling for phone field:**
+    - Created `formatPhoneNumber()` function
+    - Strips all non-digits: `value.replace(/\D/g, '')`
+    - Limits to 10 digits: `digits.slice(0, 10)`
+    - Formats: if ≤3 return as-is, if ≤6 format as "123 456", else "123 456 7890"
+    - Applied in `handleChange()` with conditional logic for phone field
+
+**5. International Phone Support with Country Codes** (March 25, Afternoon-Evening)
+  - **Country Code Dropdown** with 11 countries
+    - México (+52), USA/Canadá (+1), España (+34), Argentina (+54), Chile (+56), Colombia (+57), Venezuela (+58), Perú (+51), Reino Unido (+44), Alemania (+49), Francia (+33)
+    - Default: México (+52)
+    - Stored in database as: "+52 123 456 7890" (country code + space + number)
+  - **Flag Emoji Rendering on Windows** - solved cross-platform issue
+    - **Root Cause:** Chrome/Edge on Windows doesn't support flag emojis natively (intentional by Google/Microsoft)
+    - **Solution:** Installed `country-flag-emoji-polyfill` npm package
+    - **How it works:**
+      - Polyfill detects if browser supports flag emojis
+      - If not, loads "Twemoji Country Flags" web font (78KB, only when needed)
+      - Font uses unicode-range to ONLY affect flag emojis (not other text)
+      - Smart loading: only downloads font if needed (macOS/iOS won't download)
+    - **Implementation:**
+      - Added polyfill import and initialization in useEffect for both forms
+      - Added font-family CSS to flag spans: `"Twemoji Country Flags", "Segoe UI Emoji", "Apple Color Emoji", sans-serif`
+      - Applied to ClientForm and AppointmentForm (both main form and quick add modal)
+    - **Result:** Beautiful colorful flag emojis render on ALL platforms 🇲🇽 🇺🇸 🇪🇸
+  - **Country Code UI Design:**
+    - Grid layout: 5 columns for country dropdown, 7 columns for phone input
+    - SelectProps.renderValue shows flag + code + country in selected field
+    - MenuItem shows flag (1.5rem) + code (bold) + country (gray, small)
+    - Responsive: stacks vertically on mobile (xs={12}), side-by-side on desktop (sm={5}/sm={7})
+  - **Data Architecture:**
+    - Added `countryCode` field to form state (default: '+52')
+    - Phone stored with country code: `${countryCode} ${phoneNumber}`
+    - On edit mode, parses existing phone to extract country code
+    - Finds matching country from COUNTRY_CODES array
+    - Displays number without country code in input field
+
+**6. Material Form Minor Improvements** (March 25)
+  - **Fixed Category field minWidth** to 140px
+    - Label "Categoría" now always displays fully (not shrunk)
+    - Added: `sx={{ minWidth: 140 }}`
+  - **Removed Cost Per Unit field** (not needed currently)
+    - Removed from form UI (deleted TextField)
+    - Removed from form state (`costPerUnit` deleted)
+    - Removed from fetch logic (edit mode data loading)
+    - Removed from submit data preparation
+    - Field still exists in database schema for future use
+
+**7. Applied Same Validation to AppointmentForm Quick Add Modal**
+  - Copied all validation logic from ClientForm
+  - Same name validation (letters only, min 2 chars)
+  - Same email validation (proper format)
+  - Same phone validation (10 digits, auto-format)
+  - Same country code dropdown with flags
+  - Consistent UX across both forms
 
 ### Challenges Faced
--
--
+- **Dashboard Card Layout Instability:** Cards appearing asymmetrical or misaligned on mobile
+  - Tried multiple minWidth values (150, 170) which made all cards stack vertically
+  - Grid system wasn't enforcing equal widths across breakpoints
+- **User Name Not Displaying:** JWT token missing name field
+  - Dashboard showed "¡Bienvenida,! 👋" without actual name
+  - Had to investigate AuthContext and JWT payload structure
+- **File Edit Conflicts:** Multiple "File has been modified since read" errors
+  - User's linter/formatter auto-modifying files between read and edit operations
+- **Flag Emoji Rendering Mystery:** Seeing "MX", "US" instead of actual flag emojis 🇲🇽 🇺🇸
+  - Initially thought it was font-family issue
+  - Tried various CSS approaches (emoji fonts, larger sizes, different styles)
+  - Created colored circular badges as workaround (looked professional but not flags)
+  - User insisted on actual flags like other websites show
+  - Deep research revealed Windows/Chrome intentional limitation
+- **Polyfill Not Working Initially:** Flags still showing as letters after installing polyfill
+  - Polyfill loads font but doesn't automatically apply it
+  - Missing critical CSS: font-family property on flag elements
+  - Documentation wasn't clear about this requirement
+- **Understanding OAuth Redirect Limitations:** Can't use Authorization headers in browser redirects
+- **Timezone Confusion:** `.toISOString()` converting to UTC and breaking local time display
+- **N+1 Query Problem:** Dashboard slow (2-4 seconds) due to sequential API calls
 
 ### Solutions Found
--
--
+- **Dashboard Card Balance:** User suggested showing real inventory count instead of "#"
+  - Added `materialsCount` state and `fetchMaterialsCount()` API call
+  - Removed minWidth constraints and relied on Grid system's natural balance
+  - Smaller icons (40px) and reduced spacing for mobile optimization
+- **JWT Token Fix:** Added `name: user.name` to token payload in authController.js line 103
+  - Users need to logout and login again to get new token with name field
+- **File Conflicts:** Re-read files before editing to get latest version
+  - Adapted workflow to handle user's auto-formatting
+- **Flag Emoji Solution - Complete Research & Implementation:**
+  - **Phase 1 (Investigation):** WebSearch for React flag emoji rendering issues
+  - **Discovery:** Found it's a known Windows/Chrome limitation (not a bug, intentional)
+  - **Phase 2 (Research):** Found `country-flag-emoji-polyfill` package on npm
+  - **Phase 3 (Installation):** Installed package via `npm install country-flag-emoji-polyfill`
+  - **Phase 4 (Implementation):**
+    - Imported and initialized polyfill in useEffect
+    - Reverted colored badges back to emoji flags
+    - **Phase 5 (Debug):** Still not working - polyfill loads font but flags don't show
+  - **Phase 6 (Deep Research):** Found missing piece - need to apply font-family CSS
+  - **Phase 7 (Final Fix):** Added `fontFamily: '"Twemoji Country Flags", ...` to flag spans
+  - **Result:** Flags render perfectly on Windows! 🎉
+- **Polyfill Font-Family Requirement:** Added explicit font stack to flag elements
+  - `fontFamily: '"Twemoji Country Flags", "Segoe UI Emoji", "Apple Color Emoji", sans-serif'`
+  - This tells browser to use polyfill font for flags
+  - Browser only uses font for flag emojis (not other text) due to unicode-range
+- **OAuth JWT Passing:** Used query parameter instead of header for browser redirects
+- **Timezone Preservation:** Manual date formatting instead of `.toISOString()`
+- **Performance:** Created aggregate analytics endpoints to reduce 40+ calls to 1 call
 
 ### Learnings This Week
--
--
+- **Consistent Typography Standards:** Importance of standardizing UI elements across all pages
+  - Variant, fontWeight, component properties should match for same element types
+  - Semantic HTML (component="h1") improves accessibility and SEO
+  - Small details (bold vs regular) make big difference in visual hierarchy
+- **Mobile-First Grid Layouts:** Understanding MUI Grid xs/sm/md breakpoint system
+  - xs={6} creates 2-column layout on mobile (50% width each)
+  - Can combine with sm, md, lg for different layouts at different screen sizes
+  - Grid automatically handles equal widths when using same values
+- **JWT Token Structure:** Understanding what belongs in JWT payload
+  - Include user data needed frequently in UI (id, email, role, name)
+  - Don't include sensitive data (password, etc.)
+  - Changes to payload require new token generation (logout/login)
+- **React useEffect Dependencies:** Empty array [] = run once on mount
+  - Perfect for one-time setup like polyfill initialization
+  - Prevents infinite loops from state updates
+- **Phone Number Formatting Patterns:** Real-time formatting as user types
+  - Strip non-digits, limit length, add formatting
+  - Applied in onChange handler before setState
+  - Improves UX by showing formatted version immediately
+- **Regex for Field Validation:** Practical regex patterns for common fields
+  - Name: `/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$/` (letters + accents + spaces + hyphens)
+  - Email: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/` (simple but effective)
+  - Phone digits: `/^\d+$/` (only numbers)
+- **Flag Emoji Technical Details:** Why emojis are complicated
+  - Flag emojis are "Regional Indicator Symbol Letters" (2 unicode chars per flag)
+  - Windows doesn't have native color emoji font for flags
+  - Chrome won't add support until Windows OS adds it (Google's position)
+  - Other websites use polyfills or image-based solutions (not native emojis)
+- **Polyfill Pattern:** How polyfills work to add missing browser features
+  - Detect if feature is missing (flag emoji support)
+  - Load alternative implementation (web font)
+  - Apply transparently without changing code structure
+  - unicode-range CSS property targets specific characters only
+- **Font-Family CSS Stack:** Fallback chain for cross-platform compatibility
+  - List fonts in preference order: polyfill → platform-specific → generic
+  - Browser uses first font in list that it has available
+  - Provides graceful degradation across different operating systems
+- **Cross-Platform Web Development:** Different browsers/OS behave differently
+  - Can't assume features work everywhere (test on target platforms)
+  - Polyfills and progressive enhancement are necessary strategies
+  - Users on different platforms should have consistent experience
+- **Autocomplete Component Advantages:** Superior UX compared to basic Select
+  - Built-in search/filter functionality
+  - Keyboard navigation
+  - Handles large datasets efficiently
+  - More flexible rendering options
+- **Modal Dialog UX Pattern:** When to use modal vs inline form
+  - Modals focus user attention on single task
+  - Good for quick actions that don't require full navigation
+  - Auto-close after success provides clear feedback
+  - Backdrop prevents accidental interaction with background
+- **Form Validation Best Practices:** Real-time validation improves UX
+  - Show errors immediately when field loses focus
+  - Clear errors as user types (don't keep showing stale errors)
+  - Provide specific, helpful error messages
+  - Prevent submission if validation fails
+- **Component Reusability:** Sharing validation logic between forms
+  - Quick add modal uses same validation as full client form
+  - Consistent behavior across different entry points
+  - DRY principle: Don't Repeat Yourself
+
+### Next Week Priorities
+- ✅ ~~UI Consistency~~ (COMPLETED!)
+- ✅ ~~Searchable Client Field~~ (COMPLETED!)
+- ✅ ~~Field Validation~~ (COMPLETED!)
+- ✅ ~~International Phone Support~~ (COMPLETED!)
+- ✅ ~~Flag Emoji Fix~~ (COMPLETED!)
+- [ ] Mobile responsiveness testing (test all forms on phone/tablet)
+- [ ] End-to-end system testing (complete workflow verification)
+- [ ] Production deployment (Vercel/Railway)
+- [ ] Optional: Email notifications for appointments
+- [ ] Optional: Export reports (CSV/PDF)
 
 ---
 

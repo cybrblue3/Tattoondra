@@ -156,47 +156,60 @@ import { useState, useEffect } from 'react';
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <Button
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate('/dashboard')}
-              >
-                Dashboard
-              </Button>
-              <Typography variant="h4" component="h1">
-                Citas
-              </Typography>
-            </Box>
+        <Box mb={3}>
+        {/* Back Button + Title */}
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={{ xs: 2, sm: 0 }}>
+          <Button
+            onClick={() => navigate('/dashboard')}
+            sx={{ minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 28 }} />
+            <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+              Dashboard
+            </Typography>
+          </Button>
+          <Typography variant="h4" fontWeight="bold" component="h1" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+            Citas
+          </Typography>
+          <Box sx={{ width: 80 }} /> {/* Spacer to balance */}
+        </Box>
 
-            <Box display="flex" gap={2}>
-              {/* View Toggle Button */}
-              <Button
-                variant="outlined"
-                startIcon={viewMode === 'table' ? <CalendarIcon /> : <TableIcon />}
-                onClick={() => setViewMode(viewMode === 'table' ? 'calendar' : 'table')}
-                sx={{ borderColor: '#667eea', color: '#667eea' }}
-              >
-                {viewMode === 'table' ? 'Vista Calendario' : 'Vista Tabla'}
-              </Button>
+        {/* Action Buttons */}
+        <Box
+          display="flex"
+          flexDirection={{ xs: 'column', sm: 'row' }}
+          gap={2}
+          mt={{ xs: 2, sm: 0 }}
+        >
+          {/* View Toggle Button */}
+          <Button
+            variant="outlined"
+            startIcon={viewMode === 'table' ? <CalendarIcon /> : <TableIcon />}
+            onClick={() => setViewMode(viewMode === 'table' ? 'calendar' : 'table')}
+            sx={{ borderColor: '#667eea', color: '#667eea' }}
+            fullWidth={{ xs: true, sm: false }}
+          >
+            {viewMode === 'table' ? 'Vista Calendario' : 'Vista Tabla'}
+          </Button>
 
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => navigate('/dashboard/appointments/new')}
-                sx={{
-                  background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-                  color: 'white'
-                }}
-              >
-                Nueva Cita
-              </Button>
-            </Box>
-          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/dashboard/appointments/new')}
+            sx={{
+              background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+              color: 'white'
+            }}
+            fullWidth={{ xs: true, sm: false }}
+          >
+            Nueva Cita
+          </Button>
+        </Box>
+      </Box>
 
         {/* Filters */}
         <Paper sx={{ p: 2, mb: 3 }}>
-          <Box display="flex" gap={2}>
+          <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
             <TextField
               label="Buscar por cliente o descripción"
               variant="outlined"
@@ -209,7 +222,8 @@ import { useState, useEffect } from 'react';
               label="Estado"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              sx={{ minWidth: 200 }}
+              sx={{ minWidth: { xs: '100%', sm: 200 } }}
+              fullWidth
             >
               <MenuItem value="">Todos</MenuItem>
               <MenuItem value="CONFIRMED">Confirmada</MenuItem>
@@ -223,8 +237,8 @@ import { useState, useEffect } from 'react';
         {/* Conditional View: Table or Calendar */}
   {viewMode === 'table' ? (
     // TABLE VIEW
-    <TableContainer component={Paper}>
-      <Table>
+    <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+      <Table sx={{ minWidth: 650 }}>
         <TableHead>
           <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
             <TableCell><strong>Cliente</strong></TableCell>

@@ -25,7 +25,8 @@ import { useState, useEffect } from 'react';
     TableCell,
     TableContainer,
     TableHead,
-    TableRow
+    TableRow,
+    Alert
   } from '@mui/material';
   import {
     ArrowBack as ArrowBackIcon,
@@ -88,6 +89,7 @@ import { useState, useEffect } from 'react';
     const [payments, setPayments] = useState([]);
     const [totalPaid, setTotalPaid] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     // Payment form state
@@ -325,31 +327,40 @@ import { useState, useEffect } from 'react';
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
         {/* Back Button */}
         <Button
-          startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/dashboard/appointments')}
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
         >
-          Volver a Citas
+          <ArrowBackIcon sx={{ fontSize: 28 }} />
+          <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+            Citas
+          </Typography>
         </Button>
 
+        {/* Error Alert */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+            {error}
+          </Alert>
+        )}
+
         {/* Header */}
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-            <Box>
-              <Typography variant="h4" gutterBottom>
-                Cita - {appointment.client.name}
-              </Typography>
-              <Chip
-                label={getStatusLabel(appointment.status)}
-                color={getStatusColor(appointment.status)}
-                sx={{ mb: 2 }}
-              />
-            </Box>
-            <Box display="flex" gap={1}>
+        <Paper sx={{ p: 4, mb: 3 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h4" fontWeight="bold" component="h1" gutterBottom>
+              Cita - {appointment.client.name}
+            </Typography>
+            <Chip
+              label={getStatusLabel(appointment.status)}
+              color={getStatusColor(appointment.status)}
+              size="small"
+              sx={{ mb: 2 }}
+            />
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mt: 2 }}>
               <Button
                 variant="outlined"
                 startIcon={<EditIcon />}
                 onClick={() => navigate(`/dashboard/appointments/${id}/edit`)}
+                fullWidth={{ xs: true, sm: false }}
               >
                 Editar
               </Button>
@@ -358,21 +369,17 @@ import { useState, useEffect } from 'react';
                 color="error"
                 startIcon={<DeleteIcon />}
                 onClick={() => setDeleteDialogOpen(true)}
+                fullWidth={{ xs: true, sm: false }}
               >
                 Eliminar
               </Button>
             </Box>
           </Box>
-        </Paper>
 
-        {/* Appointment Info */}
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Información de la Cita
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
+          <Divider sx={{ mb: 3 }} />
 
-          <Grid container spacing={2}>
+          {/* Appointment Info */}
+          <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <Typography color="text.secondary" variant="body2">
                 Fecha y Hora
@@ -479,8 +486,8 @@ import { useState, useEffect } from 'react';
 
         {/* Payment Info */}
         <Paper sx={{ p: 3, mb: 3 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">
+          <Box mb={2}>
+            <Typography variant="h6" gutterBottom>
               Información de Pago
             </Typography>
             <Button
@@ -491,6 +498,7 @@ import { useState, useEffect } from 'react';
                 background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
                 color: 'white'
               }}
+              fullWidth={{ xs: true, sm: false }}
             >
               Registrar Pago
             </Button>
@@ -547,8 +555,8 @@ import { useState, useEffect } from 'react';
               No hay pagos registrados
             </Typography>
           ) : (
-            <TableContainer>
-              <Table size="small">
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table size="small" sx={{ minWidth: 650 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell><strong>Fecha</strong></TableCell>
@@ -600,12 +608,13 @@ import { useState, useEffect } from 'react';
 
         {/* Materials Used Section */}
           <Paper sx={{ p: 3, mt: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Materiales Utilizados</Typography>
+            <Box mb={2}>
+              <Typography variant="h6" gutterBottom>Materiales Utilizados</Typography>
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
                 onClick={() => setMaterialDialogOpen(true)}
+                fullWidth={{ xs: true, sm: false }}
               >
                 Agregar Material
               </Button>
@@ -617,8 +626,8 @@ import { useState, useEffect } from 'react';
               </Typography>
             ) : (
               <>
-                <TableContainer>
-                  <Table>
+                <TableContainer sx={{ overflowX: 'auto' }}>
+                  <Table sx={{ minWidth: 500 }}>
                     <TableHead>
                       <TableRow>
                         <TableCell><strong>Material</strong></TableCell>

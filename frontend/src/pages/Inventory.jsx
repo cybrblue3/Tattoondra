@@ -148,34 +148,41 @@ import { useState, useEffect } from 'react';
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-          <Box display="flex" alignItems="center" gap={2}>
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
             <Button
-              startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/dashboard')}
+              sx={{ minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
             >
-              Dashboard
+              <ArrowBackIcon sx={{ fontSize: 28 }} />
+              <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+                Dashboard
+              </Typography>
             </Button>
-            <Typography variant="h4" component="h1">
+            <Typography variant="h4" fontWeight="bold" component="h1" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
               Inventario
             </Typography>
+            <Box sx={{ width: 80 }} /> {/* Spacer to balance */}
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/dashboard/inventory/new')}
-            sx={{
-              background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-              color: 'white'
-            }}
-          >
-            Agregar Material
-          </Button>
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/dashboard/inventory/new')}
+              sx={{
+                background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                color: 'white'
+              }}
+              fullWidth={{ xs: true, sm: false }}
+            >
+              Agregar Material
+            </Button>
+          </Box>
         </Box>
 
         {/* Materials Table */}
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 750 }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                 <TableCell><strong>Material</strong></TableCell>
@@ -183,14 +190,13 @@ import { useState, useEffect } from 'react';
                 <TableCell align="center"><strong>Cantidad</strong></TableCell>
                 <TableCell align="center"><strong>Alerta</strong></TableCell>
                 <TableCell align="center"><strong>Estado</strong></TableCell>
-                <TableCell align="center"><strong>Costo/Unidad</strong></TableCell>
                 <TableCell align="center"><strong>Acciones</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {materials.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       No hay materiales registrados
                     </Typography>
@@ -202,10 +208,12 @@ import { useState, useEffect } from 'react';
                   return (
                     <TableRow
                       key={material.id}
+                      hover
                       sx={{
-                        '&:hover': { backgroundColor: '#fafafa' },
+                        cursor: 'pointer',
                         backgroundColor: status.bgColor
                       }}
+                      onClick={() => navigate(`/dashboard/inventory/${material.id}`)}
                     >
                       <TableCell>
                         <Typography variant="body1" fontWeight="medium">
@@ -238,33 +246,24 @@ import { useState, useEffect } from 'react';
                         />
                       </TableCell>
                       <TableCell align="center">
-                        <Typography variant="body2">
-                          {material.costPerUnit
-                            ? `$${parseFloat(material.costPerUnit).toFixed(2)}`
-                            : '-'
-                          }
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
                         <Box display="flex" gap={1} justifyContent="center">
                           <Button
                             size="small"
                             variant="outlined"
-                            onClick={() => handleAdjustClick(material)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAdjustClick(material);
+                            }}
                           >
                             Ajustar
                           </Button>
                           <IconButton
                             size="small"
-                            color="primary"
-                            onClick={() => navigate(`/dashboard/inventory/${material.id}/edit`)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
                             color="error"
-                            onClick={() => handleDeleteClick(material)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(material);
+                            }}
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>

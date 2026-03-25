@@ -86,12 +86,15 @@
         {/* Header */}
         <Box display="flex" alignItems="center" gap={2} mb={3}>
           <Button
-            startIcon={<ArrowBackIcon />}
             onClick={() => navigate('/dashboard')}
+            sx={{ minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
           >
-            Dashboard
+            <ArrowBackIcon sx={{ fontSize: 28 }} />
+            <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+              Dashboard
+            </Typography>
           </Button>
-          <Typography variant="h4" component="h1">
+          <Typography variant="h4" fontWeight="bold" component="h1">
             Configuración
           </Typography>
         </Box>

@@ -118,11 +118,13 @@ import { useState, useEffect } from 'react';
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Back Button */}
         <Button
-          startIcon={<ArrowBack />}
           onClick={() => navigate('/dashboard/clients')}
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
         >
-          Volver a Clientes
+          <ArrowBack sx={{ fontSize: 28 }} />
+          <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+            Clientes
+          </Typography>
         </Button>
 
         {/* Error Alert */}
@@ -134,22 +136,22 @@ import { useState, useEffect } from 'react';
 
         {/* Client Info Card */}
         <Paper sx={{ p: 4, mb: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-            <Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
-                {client?.name}
-              </Typography>
-              <Chip
-                label={client?.role || 'CLIENT'}
-                color="primary"
-                size="small"
-              />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h4" fontWeight="bold" component="h1" gutterBottom>
+              {client?.name}
+            </Typography>
+            <Chip
+              label={client?.role || 'CLIENT'}
+              color="primary"
+              size="small"
+              sx={{ mb: 2 }}
+            />
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mt: 2 }}>
               <Button
                 variant="outlined"
                 startIcon={<EditIcon />}
                 onClick={() => navigate(`/dashboard/clients/${id}/edit`)}
+                fullWidth={{ xs: true, sm: false }}
               >
                 Editar
               </Button>
@@ -158,6 +160,7 @@ import { useState, useEffect } from 'react';
                 color="error"
                 startIcon={<DeleteIcon />}
                 onClick={() => setDeleteConfirm(true)}
+                fullWidth={{ xs: true, sm: false }}
               >
                 Eliminar
               </Button>

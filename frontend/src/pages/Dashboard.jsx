@@ -33,6 +33,7 @@ import { useAuth } from '../contexts/AuthContext';
     const [pendingBalance, setPendingBalance] = useState(0);
     const [upcomingAppointments, setUpcomingAppointments] = useState(0);
     const [activeClients, setActiveClients] = useState(0);
+    const [materialsCount, setMaterialsCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
     const handleLogout = () => {
@@ -65,9 +66,24 @@ import { useAuth } from '../contexts/AuthContext';
     }
   };
 
+    // Fetch materials count
+    const fetchMaterialsCount = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/materials`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMaterialsCount(response.data.materials.length);
+      } catch (error) {
+        console.error('Error fetching materials:', error);
+      }
+    };
+
     useEffect(() => {
       const fetchData = async () => {
-        await calculateFinancials(); // Just ONE call now!
+        await Promise.all([
+          calculateFinancials(),
+          fetchMaterialsCount()
+        ]);
         setLoading(false);
       };
 
@@ -90,23 +106,33 @@ import { useAuth } from '../contexts/AuthContext';
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Tattoondra - Admin
             </Typography>
-            <Typography variant="body2" sx={{ mr: 2 }}>
+            {/* Hide user name on small screens */}
+            <Typography variant="body2" sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}>
               {user?.name || user?.email}
             </Typography>
+
+            {/* Settings Button - Icon only on mobile */}
             <Button
               color="inherit"
               onClick={() => navigate('/dashboard/settings')}
               startIcon={<SettingsIcon />}
-              sx={{ mr: 1 }}
+              sx={{ mr: 1, minWidth: { xs: 'auto', sm: 'auto' } }}
             >
-              Configuración
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Configuración
+              </Box>
             </Button>
+
+            {/* Logout Button - Icon only on mobile */}
             <Button
               color="inherit"
               onClick={handleLogout}
               startIcon={<LogoutIcon />}
+              sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}
             >
-              Cerrar Sesión
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Cerrar Sesión
+              </Box>
             </Button>
           </Toolbar>
         </AppBar>
@@ -115,7 +141,7 @@ import { useAuth } from '../contexts/AuthContext';
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           {/* Welcome Section */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h4" gutterBottom>
+            <Typography variant="h4" fontWeight="bold" component="h1" gutterBottom>
               ¡Bienvenida, {user?.name}! 👋
             </Typography>
             <Typography variant="body1" color="text.secondary">
@@ -124,13 +150,13 @@ import { useAuth } from '../contexts/AuthContext';
           </Paper>
 
           {/* Feature Cards */}
-          <Grid container spacing={3}>
+          <Grid container spacing={2} justifyContent="center">
             {/* Appointments Card */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+            <Grid item xs={6} sm={6} md={6} lg={3}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 180, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
                 onClick={() => navigate('/dashboard/appointments')}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <CalendarMonth sx={{ fontSize: 50, color: '#667eea', mb: 2 }} />
+                <CardContent sx={{ textAlign: 'center', px: 1 }}>
+                  <CalendarMonth sx={{ fontSize: 45, color: '#764ba2', mb: 1 }} />
                   <Typography variant="h3" fontWeight="bold" color="primary">
                     {upcomingAppointments}
                   </Typography>
@@ -145,11 +171,11 @@ import { useAuth } from '../contexts/AuthContext';
             </Grid>
 
             {/* Clients Card */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+            <Grid item xs={6} sm={6} md={6} lg={3}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 180, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
               onClick={() => navigate('/dashboard/clients')}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <People sx={{ fontSize: 50, color: '#764ba2', mb: 2 }} />
+                <CardContent sx={{ textAlign: 'center', px: 1 }}>
+                  <People sx={{ fontSize: 45, color: '#764ba2', mb: 1 }} />
                    <Typography variant="h3" fontWeight="bold" color="primary">
                       {activeClients}
                     </Typography>
@@ -164,18 +190,18 @@ import { useAuth } from '../contexts/AuthContext';
             </Grid>
 
             {/* Payments Card - Clean Monthly + Pending */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+            <Grid item xs={6} sm={6} md={6} lg={3}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 180, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
               onClick={() => navigate('/dashboard/finance')}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Payments sx={{ fontSize: 50, color: '#667eea', mb: 2 }} />
-                  <Typography variant="h4" fontWeight="bold" color="success.main">
+                <CardContent sx={{ textAlign: 'center', px: 1 }}>
+                  <Payments sx={{ fontSize: 45, color: '#764ba2', mb: 1 }} />
+                  <Typography variant="h5" fontWeight="bold" color="primary">
                     {formatCurrency(monthlyRevenue)}
                   </Typography>
                   <Typography variant="h6" gutterBottom>
                     Ingresos del Mes
                   </Typography>
-                  <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
                     Pendiente: {formatCurrency(pendingBalance)}
                   </Typography>
                 </CardContent>
@@ -183,19 +209,19 @@ import { useAuth } from '../contexts/AuthContext';
             </Grid>
 
             {/* Inventory Card */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ width: '100%', height: '100%', minHeight: 220, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+            <Grid item xs={6} sm={6} md={6} lg={3}>
+              <Card sx={{ width: '100%', height: '100%', minHeight: 180, cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
               onClick={() => navigate('/dashboard/inventory')}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Inventory sx={{ fontSize: 50, color: '#764ba2', mb: 2 }} />
+                <CardContent sx={{ textAlign: 'center', px: 1 }}>
+                  <Inventory sx={{ fontSize: 40, color: '#764ba2', mb: 1 }} />
                   <Typography variant="h3" fontWeight="bold" color="primary">
-                    #
+                    {materialsCount}
                   </Typography>
                   <Typography variant="h6" gutterBottom>
                     Inventario
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Materiales
+                    Materiales Disponibles
                   </Typography>
                 </CardContent>
               </Card>

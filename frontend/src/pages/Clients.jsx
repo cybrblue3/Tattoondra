@@ -23,12 +23,9 @@ import { useState, useEffect, useRef } from 'react';
   import {
     Add as AddIcon,
     Search as SearchIcon,
-    Visibility as ViewIcon,
-    Edit as EditIcon,
     Delete as DeleteIcon,
     People,
     ArrowBack as ArrowBackIcon
-
   } from '@mui/icons-material';
 
   const Clients = () => {
@@ -180,26 +177,33 @@ import { useState, useEffect, useRef } from 'react';
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
-         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+         <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
             <Button
-              startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/dashboard')}
+              sx={{ minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
             >
-              Dashboard
+              <ArrowBackIcon sx={{ fontSize: 28 }} />
+              <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+                Dashboard
+              </Typography>
             </Button>
-            <Typography variant="h4" fontWeight="bold">
+            <Typography variant="h4" fontWeight="bold" component="h1" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
               Clientes
             </Typography>
+            <Box sx={{ width: 80 }} /> {/* Spacer to balance */}
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/dashboard/clients/new')}
-            sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-          >
-            Agregar Cliente
-          </Button>
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/dashboard/clients/new')}
+              sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+              fullWidth={{ xs: true, sm: false }}
+            >
+              Agregar Cliente
+            </Button>
+          </Box>
          </Box>
 
         {/* Error Alert */}
@@ -314,8 +318,8 @@ import { useState, useEffect, useRef } from 'react';
   </Box>
 
         {/* Clients Table */}
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 650 }}>
             <TableHead sx={{ bgcolor: '#f5f5f5' }}>
               <TableRow>
                 <TableCell><strong>Nombre</strong></TableCell>
@@ -336,7 +340,12 @@ import { useState, useEffect, useRef } from 'react';
                 </TableRow>
               ) : (
                 clients.map((client) => (
-                  <TableRow key={client.id} hover>
+                  <TableRow
+                    key={client.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => navigate(`/dashboard/clients/${client.id}`)}
+                  >
                     <TableCell>{client.name}</TableCell>
                     <TableCell>{client.email}</TableCell>
                     <TableCell>{client.phone || 'N/A'}</TableCell>
@@ -346,24 +355,11 @@ import { useState, useEffect, useRef } from 'react';
                     <TableCell align="center">
                       <IconButton
                         size="small"
-                        color="primary"
-                        onClick={() => navigate(`/dashboard/clients/${client.id}`)}
-                        title="Ver detalles"
-                      >
-                        <ViewIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="secondary"
-                        onClick={() => navigate(`/dashboard/clients/${client.id}/edit`)}
-                        title="Editar"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
                         color="error"
-                        onClick={() => setDeleteConfirm(client.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteConfirm(client.id);
+                        }}
                         title="Eliminar"
                       >
                         <DeleteIcon />

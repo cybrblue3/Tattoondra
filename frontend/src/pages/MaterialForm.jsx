@@ -39,8 +39,7 @@ import { useState, useEffect } from 'react';
       category: '',
       quantity: '',
       unit: 'unidad',
-      restockThreshold: '25',
-      costPerUnit: ''
+      restockThreshold: '25'
     });
     const [errors, setErrors] = useState({});
 
@@ -61,8 +60,7 @@ import { useState, useEffect } from 'react';
               category: material.category || '',
               quantity: material.quantity.toString(),
               unit: material.unit,
-              restockThreshold: material.restockThreshold.toString(),
-              costPerUnit: material.costPerUnit ? parseFloat(material.costPerUnit).toString() : ''
+              restockThreshold: material.restockThreshold.toString()
             });
             setLoading(false);
           } catch (error) {
@@ -119,8 +117,7 @@ import { useState, useEffect } from 'react';
           category: formData.category || null,
           quantity: parseInt(formData.quantity),
           unit: formData.unit,
-          restockThreshold: parseInt(formData.restockThreshold),
-          costPerUnit: formData.costPerUnit ? parseFloat(formData.costPerUnit) : null
+          restockThreshold: parseInt(formData.restockThreshold)
         };
 
         if (isEditMode) {
@@ -133,7 +130,12 @@ import { useState, useEffect } from 'react';
           });
         }
 
-        navigate('/dashboard/inventory');
+        // Navigate back to detail view if editing, or list if creating new
+        if (isEditMode) {
+          navigate(`/dashboard/inventory/${id}`);
+        } else {
+          navigate('/dashboard/inventory');
+        }
       } catch (error) {
         console.error('Error saving material:', error);
         alert(error.response?.data?.error || 'Error al guardar material');
@@ -153,12 +155,15 @@ import { useState, useEffect } from 'react';
         {/* Header */}
         <Box display="flex" alignItems="center" gap={2} mb={3}>
           <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/dashboard/inventory')}
+            onClick={() => navigate(isEditMode ? `/dashboard/inventory/${id}` : '/dashboard/inventory')}
+            sx={{ minWidth: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5, p: 1 }}
           >
-            Inventario
+            <ArrowBackIcon sx={{ fontSize: 28 }} />
+            <Typography variant="caption" sx={{ fontSize: '0.65rem', textTransform: 'none' }}>
+              Inventario
+            </Typography>
           </Button>
-          <Typography variant="h4" component="h1">
+          <Typography variant="h4" fontWeight="bold" component="h1">
             {isEditMode ? 'Editar Material' : 'Nuevo Material'}
           </Typography>
         </Box>
@@ -191,6 +196,7 @@ import { useState, useEffect } from 'react';
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
+                  sx={{ minWidth: 140 }}
                 >
                   <MenuItem value="">Sin categoría</MenuItem>
                   {CATEGORIES.map((cat) => (
@@ -251,28 +257,13 @@ import { useState, useEffect } from 'react';
                   inputProps={{ min: 0 }}
                 />
               </Grid>
-
-              {/* Cost Per Unit */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Costo por Unidad (Opcional)"
-                  name="costPerUnit"
-                  value={formData.costPerUnit}
-                  onChange={handleChange}
-                  placeholder="0.00"
-                  inputProps={{ min: 0, step: 0.01 }}
-                  helperText="Para cálculo de costos y ganancias"
-                />
-              </Grid>
             </Grid>
 
             {/* Action Buttons */}
             <Box display="flex" gap={2} justifyContent="flex-end" mt={3}>
               <Button
                 variant="outlined"
-                onClick={() => navigate('/dashboard/inventory')}
+                onClick={() => navigate(isEditMode ? `/dashboard/inventory/${id}` : '/dashboard/inventory')}
               >
                 Cancelar
               </Button>
