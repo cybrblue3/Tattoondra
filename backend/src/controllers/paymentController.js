@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { sanitizeObject } = require('../utils/sanitize');
   const prisma = new PrismaClient();
 
   /**
@@ -8,7 +9,9 @@ const { PrismaClient } = require('@prisma/client');
    */
   const createPayment = async (req, res) => {
     try {
-      const { appointmentId, amount, type, isDeposit, notes } = req.body;
+      // Sanitize all user inputs to prevent XSS attacks
+      const sanitizedBody = sanitizeObject(req.body);
+      const { appointmentId, amount, type, isDeposit, notes } = sanitizedBody;
       const userId = req.user.id; // From JWT token (verifyToken middleware)
 
       // Validate required fields
@@ -18,12 +21,15 @@ const { PrismaClient } = require('@prisma/client');
         });
       }
 
-      // Verify appointment exists
-      const appointmentExists = await prisma.appointment.findUnique({
-        where: { id: appointmentId }
+      // Verify appointment exists and get existing payments
+      const appointment = await prisma.appointment.findUnique({
+        where: { id: appointmentId },
+        include: {
+          payments: true
+        }
       });
 
-      if (!appointmentExists) {
+      if (!appointment) {
         return res.status(404).json({ error: 'Appointment not found' });
       }
 
@@ -31,6 +37,33 @@ const { PrismaClient } = require('@prisma/client');
       if (type !== 'CASH' && type !== 'BANK_TRANSFER') {
         return res.status(400).json({
           error: 'Payment type must be CASH or BANK_TRANSFER'
+        });
+      }
+
+      // Calculate total already paid
+      const totalPaid = appointment.payments.reduce((sum, payment) => {
+        return sum + parseFloat(payment.amount);
+      }, 0);
+
+      // Calculate remaining balance
+      const totalPrice = parseFloat(appointment.totalPrice) || 0;
+      const remainingBalance = totalPrice - totalPaid;
+
+      // Validate payment amount doesn't exceed remaining balance
+      const paymentAmount = parseFloat(amount);
+      if (paymentAmount > remainingBalance) {
+        return res.status(400).json({
+          error: `El monto del pago ($${paymentAmount.toFixed(2)}) excede el saldo pendiente ($${remainingBalance.toFixed(2)}). No se permite sobrepago.`,
+          remainingBalance: remainingBalance.toFixed(2),
+          totalPrice: totalPrice.toFixed(2),
+          totalPaid: totalPaid.toFixed(2)
+        });
+      }
+
+      // Validate payment amount is positive
+      if (paymentAmount <= 0) {
+        return res.status(400).json({
+          error: 'El monto del pago debe ser mayor a cero'
         });
       }
 

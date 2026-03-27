@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } = require('../services/googleCalendarService');
+const { sanitizeObject } = require('../utils/sanitize');
 const prisma = new PrismaClient();
 
   /**
@@ -153,6 +154,8 @@ const prisma = new PrismaClient();
    */
   const createAppointment = async (req, res) => {
     try {
+      // Sanitize all user inputs to prevent XSS attacks
+      const sanitizedBody = sanitizeObject(req.body);
       const {
         clientId,
         date,
@@ -162,12 +165,19 @@ const prisma = new PrismaClient();
         totalPrice,
         notes,
         artistId
-      } = req.body;
+      } = sanitizedBody;
 
       // Validate required fields
       if (!clientId || !date) {
         return res.status(400).json({
           error: 'Client ID and date are required'
+        });
+      }
+
+      // Validate duration (must be positive and max 8 hours = 480 minutes)
+      if (duration && (duration <= 0 || duration > 480)) {
+        return res.status(400).json({
+          error: 'La duración debe ser mayor a 0 y máximo 8 horas (480 minutos)'
         });
       }
 
@@ -273,6 +283,8 @@ const prisma = new PrismaClient();
   const updateAppointment = async (req, res) => {
     try {
       const { id } = req.params;
+      // Sanitize all user inputs to prevent XSS attacks
+      const sanitizedBody = sanitizeObject(req.body);
       const {
         date,
         duration,
@@ -284,7 +296,7 @@ const prisma = new PrismaClient();
         notes,
         consentSigned,
         artistId
-      } = req.body;
+      } = sanitizedBody;
 
       // Check if appointment exists
       const existingAppointment = await prisma.appointment.findUnique({
@@ -293,6 +305,13 @@ const prisma = new PrismaClient();
 
       if (!existingAppointment) {
         return res.status(404).json({ error: 'Appointment not found' });
+      }
+
+      // Validate duration (must be positive and max 8 hours = 480 minutes)
+      if (duration !== undefined && (duration <= 0 || duration > 480)) {
+        return res.status(400).json({
+          error: 'La duración debe ser mayor a 0 y máximo 8 horas (480 minutos)'
+        });
       }
 
       // If artistId provided, verify artist exists
@@ -503,11 +522,21 @@ const prisma = new PrismaClient();
           });
         }
 
-        // Check if there's enough stock (only if appointment is COMPLETED)
-        if (appointment.status === 'COMPLETED' && material.quantity < item.quantity) {
+        // Validate quantity is positive
+        if (item.quantity <= 0) {
           return res.status(400).json({
-            error: `Not enough stock for ${material.name}. Available: ${material.quantity}, Requested:
-  ${item.quantity}`
+            error: `La cantidad debe ser mayor a cero para ${material.name}`
+          });
+        }
+
+        // ALWAYS check if there's enough stock (regardless of appointment status)
+        // This prevents users from adding materials they don't have
+        if (material.quantity < item.quantity) {
+          return res.status(400).json({
+            error: `Stock insuficiente para ${material.name}. Disponible: ${material.quantity}, Solicitado: ${item.quantity}`,
+            materialName: material.name,
+            available: material.quantity,
+            requested: item.quantity
           });
         }
       }

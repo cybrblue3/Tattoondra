@@ -2,16 +2,17 @@ const express = require('express');
   const router = express.Router();
   const { register, login } = require('../controllers/authController');
   const { verifyToken } = require('../middleware/authMiddleware');
+  const { authLimiter } = require('../middleware/rateLimiter');
 
   // PUBLIC ROUTES (No authentication required)
   
   // Register new user
   // POST /api/auth/register
-  router.post('/register', register);
+  router.post('/register', authLimiter, register);
 
   // Login user
   // POST /api/auth/login
-  router.post('/login', login);
+  router.post('/login', authLimiter, login);
   
   // PROTECTED ROUTES (Authentication required)
   

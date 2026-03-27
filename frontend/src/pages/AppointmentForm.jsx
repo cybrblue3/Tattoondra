@@ -53,7 +53,9 @@ import { useState, useEffect } from 'react';
     const [formData, setFormData] = useState({
       clientId: '',
       date: '',
-      duration: 60,
+      duration: 60, // Still store total minutes for backend
+      durationHours: 1, // Display hours separately
+      durationMinutes: 0, // Display minutes separately
       description: '',
       status: 'CONFIRMED',
       totalPrice: '',
@@ -110,10 +112,17 @@ import { useState, useEffect } from 'react';
             const minutes = String(date.getMinutes()).padStart(2, '0');
             const dateForInput = `${year}-${month}-${day}T${hours}:${minutes}`;
 
+            // Convert duration minutes to hours and minutes
+            const totalMinutes = appointment.duration;
+            const durationHours = Math.floor(totalMinutes / 60);
+            const durationMinutes = totalMinutes % 60;
+
             setFormData({
               clientId: appointment.clientId,
               date: dateForInput,
               duration: appointment.duration,
+              durationHours: durationHours,
+              durationMinutes: durationMinutes,
               description: appointment.description || '',
               status: appointment.status,
               totalPrice: appointment.totalPrice ? parseFloat(appointment.totalPrice) : '',
@@ -143,6 +152,35 @@ import { useState, useEffect } from 'react';
       }
     };
 
+    // Handle duration hours/minutes change and recalculate total minutes
+    const handleDurationChange = (field, value) => {
+      const numValue = parseInt(value) || 0;
+
+      let newHours = formData.durationHours;
+      let newMinutes = formData.durationMinutes;
+
+      if (field === 'hours') {
+        newHours = numValue;
+      } else {
+        newMinutes = numValue;
+      }
+
+      // Calculate total duration in minutes
+      const totalMinutes = (newHours * 60) + newMinutes;
+
+      setFormData({
+        ...formData,
+        durationHours: newHours,
+        durationMinutes: newMinutes,
+        duration: totalMinutes
+      });
+
+      // Clear duration error
+      if (errors.duration) {
+        setErrors({ ...errors, duration: '' });
+      }
+    };
+
     const validate = () => {
       const newErrors = {};
 
@@ -156,6 +194,8 @@ import { useState, useEffect } from 'react';
 
       if (!formData.duration || formData.duration <= 0) {
         newErrors.duration = 'La duración debe ser mayor a 0';
+      } else if (formData.duration > 480) {
+        newErrors.duration = 'La duración máxima es de 8 horas (480 minutos)';
       }
 
       setErrors(newErrors);
@@ -393,19 +433,50 @@ import { useState, useEffect } from 'react';
                 />
               </Grid>
 
-              {/* Duration */}
+              {/* Duration - Hours and Minutes */}
               <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  required
-                  type="number"
-                  label="Duración (minutos)"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  error={!!errors.duration}
-                  helperText={errors.duration}
-                />
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Duración de la Cita *
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <TextField
+                    select
+                    label="Horas"
+                    value={formData.durationHours}
+                    onChange={(e) => handleDurationChange('hours', e.target.value)}
+                    sx={{ flex: 1 }}
+                    error={!!errors.duration}
+                  >
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((hour) => (
+                      <MenuItem key={hour} value={hour}>
+                        {hour} {hour === 1 ? 'hora' : 'horas'}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    select
+                    label="Minutos"
+                    value={formData.durationMinutes}
+                    onChange={(e) => handleDurationChange('minutes', e.target.value)}
+                    sx={{ flex: 1 }}
+                    error={!!errors.duration}
+                  >
+                    {[0, 15, 30, 45].map((minute) => (
+                      <MenuItem key={minute} value={minute}>
+                        {minute} min
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Box>
+                {errors.duration && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.duration}
+                  </Typography>
+                )}
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                  Total: {formData.duration} minutos ({Math.floor(formData.duration / 60)}h {formData.duration % 60}min)
+                </Typography>
               </Grid>
 
               {/* Description */}

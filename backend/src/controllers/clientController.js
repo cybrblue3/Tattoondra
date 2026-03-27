@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { sanitizeObject } = require('../utils/sanitize');
 
   const prisma = new PrismaClient();
 
@@ -118,34 +119,62 @@ const { PrismaClient } = require('@prisma/client');
   
   const createClient = async (req, res) => {
     try {
-      const { email, name, phone } = req.body;
+      // Sanitize all user inputs to prevent XSS attacks
+      const sanitizedBody = sanitizeObject(req.body);
+      const { email, name, phone } = sanitizedBody;
 
-      // Validate required fields
-      if (!email || !name) {
+      // Validate required fields - PHONE is now primary, email is optional
+      if (!name || !phone) {
         return res.status(400).json({
           success: false,
-          error: 'Email and name are required'
+          error: 'Nombre y teléfono son requeridos'
         });
       }
 
-      // Check if email already exists
-      const existingUser = await prisma.user.findUnique({
-        where: { email }
-      });
-
-      if (existingUser) {
-        return res.status(409).json({
+      // Validate phone format (must be 10 digits for Mexico)
+      const phoneDigits = phone.replace(/\D/g, ''); // Remove non-digits
+      if (phoneDigits.length < 10) {
+        return res.status(400).json({
           success: false,
-          error: 'A user with this email already exists'
+          error: 'El teléfono debe tener al menos 10 dígitos'
         });
+      }
+
+      // Validate email format IF provided
+      let finalEmail = email;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (email && email.trim()) {
+        // Email provided - validate format
+        if (!emailRegex.test(email)) {
+          return res.status(400).json({
+            success: false,
+            error: 'Formato de email inválido. Por favor ingresa un email válido (ejemplo: usuario@dominio.com)'
+          });
+        }
+
+        // Check if email already exists
+        const existingUser = await prisma.user.findUnique({
+          where: { email: email.trim() }
+        });
+
+        if (existingUser) {
+          return res.status(409).json({
+            success: false,
+            error: 'Ya existe un usuario con este email'
+          });
+        }
+      } else {
+        // No email provided - generate dummy email using phone number
+        finalEmail = `${phoneDigits}@tattoondra.local`;
       }
 
       // Create client (no password needed - clients don't log in)
       const client = await prisma.user.create({
         data: {
-          email,
+          email: finalEmail,
           name,
-          phone: phone || null,
+          phone,
           password: 'N/A',  // Clients don't need passwords
           role: 'CLIENT'
         },
@@ -180,7 +209,9 @@ const { PrismaClient } = require('@prisma/client');
   const updateClient = async (req, res) => {
     try {
       const { id } = req.params;
-      const { email, name, phone } = req.body;
+      // Sanitize all user inputs to prevent XSS attacks
+      const sanitizedBody = sanitizeObject(req.body);
+      const { email, name, phone } = sanitizedBody;
 
       // Check if client exists
       const existingClient = await prisma.user.findUnique({

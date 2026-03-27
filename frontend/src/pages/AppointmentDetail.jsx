@@ -680,10 +680,15 @@ import { useState, useEffect } from 'react';
                   value={selectedMaterial}
                   onChange={(e) => setSelectedMaterial(e.target.value)}
                   sx={{ mb: 2 }}
+                  helperText={
+                    selectedMaterial && materials.find(m => m.id === selectedMaterial)
+                      ? `Stock disponible: ${materials.find(m => m.id === selectedMaterial).quantity} ${materials.find(m => m.id === selectedMaterial).unit}`
+                      : 'Selecciona un material para ver el stock disponible'
+                  }
                 >
                   {materials.map((material) => (
                     <MenuItem key={material.id} value={material.id}>
-                      {material.name} ({material.quantity} {material.unit} disponibles)
+                      {material.name}
                     </MenuItem>
                   ))}
                 </TextField>

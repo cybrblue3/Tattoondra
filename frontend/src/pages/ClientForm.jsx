@@ -160,20 +160,22 @@ import { useState, useEffect } from 'react';
         newErrors.name = 'El nombre solo puede contener letras, espacios y guiones';
       }
 
-      // Email validation
-      if (!formData.email.trim()) {
-        newErrors.email = 'El email es requerido';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = 'Email inválido (ejemplo: nombre@dominio.com)';
-      }
-
-      // Phone validation: exactly 10 digits if provided
-      if (formData.phone.trim()) {
+      // Phone validation: REQUIRED - exactly 10 digits
+      if (!formData.phone.trim()) {
+        newErrors.phone = 'El teléfono es requerido';
+      } else {
         const phoneDigits = formData.phone.replace(/\s/g, '');
         if (!/^\d+$/.test(phoneDigits)) {
           newErrors.phone = 'El teléfono solo puede contener números';
         } else if (phoneDigits.length !== 10) {
           newErrors.phone = 'El teléfono debe tener exactamente 10 dígitos';
+        }
+      }
+
+      // Email validation: OPTIONAL - but validate format if provided
+      if (formData.email.trim()) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = 'Email inválido (ejemplo: nombre@dominio.com)';
         }
       }
 
@@ -297,14 +299,13 @@ import { useState, useEffect } from 'react';
 
             <TextField
               fullWidth
-              required
-              label="Email"
+              label="Email (opcional)"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
               error={!!errors.email}
-              helperText={errors.email}
+              helperText={errors.email || 'El email es opcional. Se usará el teléfono como contacto principal'}
               sx={{ mb: 3 }}
             />
 
@@ -358,6 +359,7 @@ import { useState, useEffect } from 'react';
               <Grid item xs={12} sm={7}>
                 <TextField
                   fullWidth
+                  required
                   label="Número de Teléfono"
                   name="phone"
                   value={formData.phone}
